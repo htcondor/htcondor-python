@@ -106,12 +106,12 @@ Module Classes
 
       Create an instance of the :class:`Collector` class.
 
-      :param pool: A``host:port`` pair specified for the remote collector
+      :param pool: A ``host:port`` pair specified for the remote collector
          (or a list of pairs for HA setups). If omitted, the value of
          configuration parameter ``COLLECTOR_HOST`` is used.
       :type pool: str or list[str]
 
-   .. locate( daemon_type, name )
+   .. method:: locate( daemon_type, name )
 
       Query the ``condor_collector`` for a particular daemon.
 
