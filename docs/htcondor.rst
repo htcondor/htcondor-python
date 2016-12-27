@@ -14,11 +14,11 @@ guide for those who already understand the basic usage of the module.
 This reference covers the following:
 
 * :ref:`common_module_functions`: The more commonly-used :mod:`htcondor` functions.
-* :ref:`schedd_class`: Interacting with the ``condor_schedd``.
-* :ref:`collector_class`: Interacting with the ``condor_collector``.
-* :ref:`submit_class`: Submitting to HTCondor.
-* :ref:`claim_class`: Working with HTCondor claims.
-* :ref:`param_class`: Working with the parameter objects.
+* :class:`Schedd`: Interacting with the ``condor_schedd``.
+* :class:`Collector`: Interacting with the ``condor_collector``.
+* :class:`Submit`: Submitting to HTCondor.
+* :class:`Claim`: Working with HTCondor claims.
+* :class:`Param`: Working with the parameter objects.
 * :ref:`esoteric_module_functions`: Less-commonly used :mod:`htcondor` functions.
 * :ref:`useful_enums`: Useful enumerations.
 
