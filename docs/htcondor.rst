@@ -29,8 +29,8 @@ Common Module-Level Functions and Objects
 
 .. _schedd_class:
 
-:class:`Schedd` Class
----------------------
+Module Classes
+--------------
 
 .. class:: Schedd
 
@@ -54,31 +54,30 @@ Common Module-Level Functions and Objects
 
 .. _collector_class:
 
-:class:`Collector` Class
-------------------------
+.. class:: Collector
 
-TODO: This section has not yet been written.
+   TODO: This section has not yet been written.
+
 
 .. _submit_class:
 
-:class:`Submit` Class
----------------------
+.. class:: Submit
 
-TODO: This section has not yet been written.
+   TODO: This section has not yet been written.
+
 
 .. _claim_class:
 
-:class:`Claim` Class
---------------------
+.. class:: Claim
 
-TODO: This section has not yet been written.
+   TODO: This section has not yet been written.
 
 .. _param_class:
 
-:class:`Param` Class
---------------------
+.. class:: Param
 
-TODO: This section has not yet been written.
+   TODO: This section has not yet been written.
+
 
 .. _esoteric_module_functions:
 
@@ -86,6 +85,7 @@ Esoteric Module-Level Functions
 -------------------------------
 
 TODO: This section has not yet been written.
+
 
 .. _useful_enums:
 
