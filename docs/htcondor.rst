@@ -67,6 +67,14 @@ Module Classes
 
    Client object for a remote ``condor_schedd``.
 
+   .. method:: __init__( location_ad )
+
+      Create an instance of the :class:`Schedd` class.
+
+      Optional parameter ``location_ad`` describes the location of the remote ``condor_schedd``
+      daemon, as returned by the :meth:`Collector.locate` method. If the parameter is omitted,
+      the local ``condor_schedd`` daemon is used.
+
    .. method:: transaction(flags=0, continue_txn=False)
 
       Start a transaction with the condor_schedd. Returns a transaction context manager.
@@ -87,7 +95,31 @@ Module Classes
 
 .. class:: Collector
 
-   TODO: This section has not yet been written.
+   Client object for a remote ``condor_collector``.  The interaction with the
+   collector broadly has three aspects:
+
+   * Locating a daemon.
+   * Query the collector for one or more specific ClassAds.
+   * Advertise a new ad to the ``condor_collector``.
+
+   .. method:: __init__( pool = None )
+
+      Create an instance of the :class:`Collector` class.
+
+      :param pool: A``host:port`` pair specified for the remote collector
+         (or a list of pairs for HA setups). If omitted, the value of
+         configuration parameter ``COLLECTOR_HOST`` is used.
+      :type pool: str or list[str]
+
+   .. locate( daemon_type, name )
+
+      Query the ``condor_collector`` for a particular daemon.
+
+      :param htcondor.DaemonTypes daemon_type: The type of daemon to locate.
+      :param name: The name of daemon to locate. If not specified, it searches for the local daemon.
+      :return: a minimal ClassAd of the requested daemon, sufficient only to contact the daemon;
+         typically, this limits to the ``MyAddress`` attribute.
+      :rtype: classad.ClassAd
 
 
 .. _submit_class:
