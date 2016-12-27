@@ -115,7 +115,8 @@ Module Classes
 
       Query the ``condor_collector`` for a particular daemon.
 
-      :param htcondor.DaemonTypes daemon_type: The type of daemon to locate.
+      :param daemon_type: The type of daemon to locate.
+      :type daemon_type: :class:`DaemonTypes`
       :param name: The name of daemon to locate. If not specified, it searches for the local daemon.
       :return: a minimal ClassAd of the requested daemon, sufficient only to contact the daemon;
          typically, this limits to the ``MyAddress`` attribute.
@@ -147,8 +148,42 @@ Module Classes
 Esoteric Module-Level Functions
 -------------------------------
 
-TODO: This section has not yet been written.
+.. class:: DaemonTypes
 
+   An enumeration of different types of daemons available to HTCondor.
+
+   .. attribute:: Collector
+
+      Ads representing the ``condor_collector``.
+
+   .. attribute:: Negotiator
+
+      Ads representing the ``condor_negotiator``.
+
+   .. attribute:: Schedd
+
+      Ads representing the ``condor_schedd``.
+
+   .. attribute:: Startd
+
+      Ads representing the resources on a worker node.
+
+   .. attribute:: HAD
+
+      Ads representing the high-availability daemons (``condor_had``).
+
+   .. attribute:: Master
+
+      Ads representing the ``condor_master``.
+
+   .. attribute:: Generic
+
+      All other ads that are not categorized as above.
+
+   .. attribute:: Any
+
+      Any type of daemon; useful when specifying queries where all matching
+      daemons should be returned.
 
 .. _useful_enums:
 
