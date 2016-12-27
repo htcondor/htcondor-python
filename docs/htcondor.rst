@@ -117,10 +117,60 @@ Module Classes
 
       :param daemon_type: The type of daemon to locate.
       :type daemon_type: :class:`DaemonTypes`
-      :param name: The name of daemon to locate. If not specified, it searches for the local daemon.
+      :param str name: The name of daemon to locate. If not specified, it searches for the local daemon.
       :return: a minimal ClassAd of the requested daemon, sufficient only to contact the daemon;
          typically, this limits to the ``MyAddress`` attribute.
-      :rtype: classad.ClassAd
+      :rtype: :class:`classad.ClassAd`
+
+   .. method:: locateAll( daemon_type )
+
+      Query the condor_collector daemon for all ClassAds of a particular type. Returns a list of matching ClassAds.
+
+      :param daemon_type: The type of daemon to locate.
+      :type daemon_type: :class:`DaemonTypes`
+      :return: Matching ClassAds
+      :rtype: list[:class:`classad.ClassAd`]
+
+   .. method:: query( ad_type, constraint='true', attrs=[], statistics='' )
+
+      Query the contents of a condor_collector daemon. Returns a list of ClassAds that match the constraint parameter.
+
+      :param ad_type: The type of ClassAd to return. If not specified, the type will be ANY_AD.
+      :type ad_type: :class:`AdTypes`
+      :param constraint: A constraint for the collector query; only ads matching this constraint are returned.
+         If not specified, all matching ads of the given type are returned.
+      :type constraint: str or :class:`classad.ExprTree`
+      :param attrs: A list of attributes to use for the projection.  Only these attributes, plus a few server-managed,
+         are returned in each :class:`classad.ClassAd`.
+      :type attrs: list[str]
+      :param list[str] statistics: Statistics attributes to include, if they exist for the specified daemon.
+      :return: A list of matching ads.
+      :rtype: list[:class:`classad.ClassAd`]
+
+   .. directQuery( daemon_type, (str)name = '', projection = [], statistics = '' )
+
+      Query the specified daemon directly for a ClassAd, instead of using the ClassAd from the ``condor_collector`` daemon.
+      Requires the client library to first locate the daemon in the collector, then querying the remote daemon.
+
+      :param daemon_type: Specifies the type of the remote daemon to query.
+      :type daemon_type: :class:`DaemonTypes`
+      :param str name: Specifies the daemon's name. If not specified, the local daemon is used.
+      :param projection: is a list of attributes requested, to obtain only a subset of the attributes from the daemon's :class:`classad.ClassAd`.
+      :type projection: list[str]
+      :param statistics: Statistics attributes to include, if they exist for the specified daemon.
+      :type statistics: str
+      :return: The ad of the specified daemon.
+      :rtype: :class:`classad.ClassAd`
+
+   .. method:: advertise( ad_list, command="UPDATE_AD_GENERIC", use_tcp=True )
+
+      Advertise a list of ClassAds into the condor_collector.
+
+      :param ad_list: :class:`classad.ClassAds` to advertise.
+      :type ad_list: list[:class:`classad.ClassAds`]
+      :param str command: An advertise command for the remote ``condor_collector``. It defaults to ``UPDATE_AD_GENERIC``.
+         Other commands, such as ``UPDATE_STARTD_AD``, may require different authorization levels with the remote daemon.
+      :param bool use_tcp: When set to true, updates are sent via TCP.  Defaults to ``True``.
 
 
 .. _submit_class:
