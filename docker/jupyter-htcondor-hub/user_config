@@ -1,0 +1,10 @@
+
+LOCAL_DIR=/home/jovyan/condor/                                                                                                      
+LOG=$(LOCAL_DIR)/log                                                                                                                
+RUN=$(LOCAL_DIR)/run                                                                                                                
+SPOOL=$(LOCAL_DIR)/spool                                                                                                            
+EXECUTE=$(LOCAL_DIR)/execute                                                                                                        
+
+CONDOR_DEVELOPERS=NONE
+CONDOR_DEVELOPERS_COLLECTOR=NONE
+
