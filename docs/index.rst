@@ -1,12 +1,24 @@
 
-Welcome to HTCondor Python's documentation!
-===========================================
+HTCondor Python module documentation
+====================================
+
+The HTCondor python modules aim to expose a high-quality, Pythonic interface
+to the HTCondor client libraries.  They utilize the same C++ libraries as
+HTCondor itself, meaning they have nearly the same behavior as the command line
+tools.  As the python modules are shipped with HTCondor itself, this
+documentation focuses on references and tutorials on how to use the modules.
+
+This work should be considered experimental (as it aims to be better-formatted
+and more intuitive); the `upstream documentation <http://research.cs.wisc.edu/htcondor/manual/v8.5/6_7Python_Bindings.html>`_
+should be considered authoritative.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
+   htcondor
+   classad
 
 
 Indices and tables
