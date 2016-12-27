@@ -28,24 +28,30 @@ Common Module-Level Functions and Objects
 -----------------------------------------
 
 .. function:: platform()
+
    Returns the platform of HTCondor this module is running on.
 
 .. function:: version()
+
    Returns the version of HTCondor this module is linked against.
 
 .. function:: reload_config()
+
    Reload the HTCondor configuration from disk.
 
 .. function:: enable_debug()
+
    Enable debugging output from HTCondor, where output is sent to ``stderr``.
    The logging level is controlled by the ``TOOL_DEBUG`` parameter.
 
 .. function:: enable_log()
+
    Enable debugging output from HTCondor, where output is sent to a file.
    The log level is controlled by the parameter ``TOOL_DEBUG``, and the
    file used is controlled by ``TOOL_LOG``.
 
-.. function:: read_events( file_obj, is_xml = True )
+.. function:: read_events(file_obj, is_xml = True)
+
    Read and parse an HTCondor event log file. Returns a Python iterator of ClassAds.
 
    * Parameter ``file_obj`` is a file object corresponding to an HTCondor event log.
