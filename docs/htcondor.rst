@@ -72,8 +72,8 @@ Module Classes
       Create an instance of the :class:`Schedd` class.
 
       :param location_ad: describes the location of the remote ``condor_schedd``
-      daemon, as returned by the :meth:`Collector.locate` method. If the parameter is omitted,
-      the local ``condor_schedd`` daemon is used.
+         daemon, as returned by the :meth:`Collector.locate` method. If the parameter is omitted,
+         the local ``condor_schedd`` daemon is used.
       :type location_ad: :class:`classad.ClassAd`
 
    .. method:: transaction(flags=0, continue_txn=False)
@@ -267,7 +267,7 @@ Useful Enumerations
 
       Release a job from the hold state, returning it to ``Idle``.
 
-   .. attributes:: Suspend
+   .. attribute:: Suspend
 
       Suspend the processes of a running job (on Unix platforms, this triggers a ``SIGSTOP``).
       The job's processes stay in memory but no longer get scheduled on the CPU.

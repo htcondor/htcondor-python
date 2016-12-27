@@ -12,7 +12,8 @@ This work should be considered experimental (as it aims to be better-formatted
 and more intuitive); the `upstream documentation <http://research.cs.wisc.edu/htcondor/manual/v8.5/6_7Python_Bindings.html>`_
 should be considered authoritative.
 
-Contents:
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
@@ -21,10 +22,5 @@ Contents:
    classad
 
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+:ref:`genindex`
 
