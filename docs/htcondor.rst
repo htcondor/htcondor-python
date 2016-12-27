@@ -54,8 +54,8 @@ Common Module-Level Functions and Objects
 
    Read and parse an HTCondor event log file. Returns a Python iterator of ClassAds.
 
-   * Parameter ``file_obj`` is a file object corresponding to an HTCondor event log.
-   * The optional parameter ``is_xml`` specifies whether the event log is XML-formatted.
+   :param file_obj: A file-like object corresponding to an HTCondor event log.
+   :param bool is_xml: Specifies whether the event log is XML-formatted.
 
 
 .. _schedd_class:
@@ -67,29 +67,41 @@ Module Classes
 
    Client object for a remote ``condor_schedd``.
 
-   .. method:: __init__( location_ad )
+   .. method:: __init__( location_ad=None )
 
       Create an instance of the :class:`Schedd` class.
 
-      Optional parameter ``location_ad`` describes the location of the remote ``condor_schedd``
+      :param location_ad: describes the location of the remote ``condor_schedd``
       daemon, as returned by the :meth:`Collector.locate` method. If the parameter is omitted,
       the local ``condor_schedd`` daemon is used.
+      :type location_ad: :class:`classad.ClassAd`
 
    .. method:: transaction(flags=0, continue_txn=False)
 
-      Start a transaction with the condor_schedd. Returns a transaction context manager.
-      Starting a new transaction while one is ongoing is an error.
+      Start a transaction with the ``condor_schedd``.
 
-      The optional parameter flags defaults to 0. Transaction flags are from the the enum
-      :class:`TransactionFlags`, and the three flags are NonDurable, SetDirty, or ShouldLog.
-      NonDurable is used for performance, as it eliminates extra fsync() calls. If the
-      ``condor_schedd`` crashes before the transaction is written to disk, the transaction
-      will be retried on restart of the condor_schedd. SetDirty marks the changed ClassAds
-      as dirty, so an update notification is sent to the ``condor_shadow`` and the
-      ``condor_gridmanager``.  ``ShouldLog`` causes changes to the job queue to be logged in the job event log file.
+      Starting a new transaction while one is ongoing is an error unless the ``continue_txn``
+      flag is set.
 
-      The optional parameter ``continue_txn`` defaults to ``False``; set the value to true to extend an ongoing transaction.
+      :param flags: Flags controlling the behavior of the transaction, defaulting to 0.
+      :type flags: :class:`TransactionFlags`
+      :param bool continue_txn: Set to ``True`` if you would like this transaction to extend any
+         pre-existing transaction; defaults to ``False``.  If this is not set, starting a transaction
+         inside a pre-existing transaction will cause an exception to be thrown.
+      :return: A transaction context manager object.
 
+   .. method:: act( action, job_spec )
+
+      Change status of job(s) in the ``condor_schedd`` daemon. The return value is a ClassAd object
+      describing the number of jobs changed.
+
+      This will throw an exception if no jobs are matched by the constraint.
+
+      :param action: The action to perform; must be of the enum JobAction.
+      :type action: :class:`JobAction`
+      :param job_spec: The job specification. It can either be a list of job IDs or a string specifying a constraint.
+         Only jobs matching this description will be acted upon.
+      :type job_spec: list[str] or str
 
 .. _collector_class:
 
@@ -147,7 +159,7 @@ Module Classes
       :return: A list of matching ads.
       :rtype: list[:class:`classad.ClassAd`]
 
-   .. directQuery( daemon_type, (str)name = '', projection = [], statistics = '' )
+   .. directQuery( daemon_type, name = '', projection = [], statistics = '' )
 
       Query the specified daemon directly for a ClassAd, instead of using the ClassAd from the ``condor_collector`` daemon.
       Requires the client library to first locate the daemon in the collector, then querying the remote daemon.
@@ -198,6 +210,13 @@ Module Classes
 Esoteric Module-Level Functions
 -------------------------------
 
+TODO: This section has not yet been written.
+
+.. _useful_enums:
+
+Useful Enumerations
+-------------------
+
 .. class:: DaemonTypes
 
    An enumeration of different types of daemons available to HTCondor.
@@ -235,9 +254,63 @@ Esoteric Module-Level Functions
       Any type of daemon; useful when specifying queries where all matching
       daemons should be returned.
 
-.. _useful_enums:
 
-Useful Enumerations
--------------------
+.. class:: JobAction
 
-TODO: This section has not yet been written.
+   Different actions that may be performed on a job in queue.
+
+   .. attribute:: Hold
+
+      Put a job on hold, vacating a running job if necessary.  A job will stay in the hold state until explicitly acted upon by the admin or owner.
+
+   .. attribute:: Release
+
+      Release a job from the hold state, returning it to ``Idle``.
+
+   .. attributes:: Suspend
+
+      Suspend the processes of a running job (on Unix platforms, this triggers a ``SIGSTOP``).
+      The job's processes stay in memory but no longer get scheduled on the CPU.
+
+   .. attribute:: Continue
+
+      Continue a suspended jobs (on Unix, ``SIGCONT``).
+      The processes in a previously suspended job will be scheduled to get CPU time again.
+
+   .. attribute:: Remove
+
+      Remove a job from the Schedd's queue, cleaning it up first on the remote host (if running).
+      This requires the remote host to acknowledge it has successfully vacated the job, meaning ``Remove`` may not be instantaneous.
+
+   .. attribute:: RemoveX
+
+      Immediately remove a job from the schedd queue, even if it means the job is left running on the remote resource.
+
+   .. attribute:: Vacate
+
+      Cause a running job to be killed on the remote resource and return to idle state.
+      With ``Vacate``, jobs may be given significant time to cleanly shut down.
+
+   .. attribute:: VacateFast
+
+      Vacate a running job as quickly as possible, without providing time for the job to cleanly terminate.
+
+
+.. class:: TransactionFlags
+
+   Flags affecting the characteristics of a transaction.
+
+   .. attribute:: NonDurable
+
+      Non-durable transactions are changes that may be lost when the ``condor_schedd``
+      crashes.  ``NonDurable`` is used for performance, as it eliminates extra ``fsync()`` calls.
+
+   .. attribute:: SetDirty
+
+      This marks the changed ClassAds as dirty, causing an update notification to be sent
+      to the ``condor_shadow`` and the ``condor_gridmanager``, if they are managing the job.
+
+  .. attribute:: ShouldLog
+
+     Causes any changes to the job queue to be logged in the relevant job event log.
+
