@@ -7,6 +7,154 @@
    :synopsis: Work with the ClassAd language
 .. moduleauthor:: Brian Bockelman <bbockelm@cse.unl.edu>
 
+This page is an exhaustive reference of the API exposed by the :mod:`classad`
+module.  It is not meant to be a tutorial for new users but rather a helpful
+guide for those who already understand the basic usage of the module.
+
+This reference covers the following:
+
+* :ref:`module_functions`: The module-level :mod:`classad` functions.
+* :class:`ClassAd`: Representation of a ClassAd.
+* :class:`ExprTree`: Representation of a ClassAd expression.
+* :ref:`useful_enums`: Useful enumerations.
+
+.. _module_functions:
+
+Module-Level Functions
+----------------------
+
+.. function:: quote( input )
+
+   Converts the Python string into a ClassAd string literal; this
+   handles all the quoting rules for the ClassAd language.  For example::
+   
+      >>> classad.quote('hello"world')
+      '"hello\\"world"'
+      
+   This allows one to safely handle user-provided strings to build expressions.
+   For example::
+   
+      >>> classad.ExprTree("Foo =?= %s" % classad.quote('hello"world'))
+      Foo is "hello\"world"
+
+   :param str input: Input string to quote.
+   :return: The corresponding string literal as a Python string.
+   :rtype: str
+
+.. function:: unquote( input )
+
+   Converts a ClassAd string literal, formatted as a string, back into
+   a python string.  This handles all the quoting rules for the ClassAd language.
+   
+   :param str input: Input string to unquote.
+   :return: The corresponding Python string for a string literal.
+   :rtype: str
+
+.. function:: parseAds( input, parser=Auto )
+
+   Parse the input as a series of ClassAds.
+
+   :param input: Serialized ClassAd input; may be a file-like object.
+   :type input: str or file
+   :param parser: Controls behavior of the ClassAd parser.
+   :type parser: :class:`Parser`
+   :return: An iterator that produces :class:`ClassAd`s.
+
+.. function:: parseNext( input, parser=Auto )
+
+   Parse the next ClassAd in the input string.
+   Advances the ``input`` to point after the consumed ClassAd.
+
+   :param input: Serialized ClassAd input; may be a file-like object.
+   :type input: str or file
+   :param parser: Controls behavior of the ClassAd parser.
+   :type parser: :class:`Parser`
+   :return: An iterator that produces :class:`ClassAd`s.
+
+.. function:: parseOne( input, parser=Auto )
+
+   Parse the entire input into a single :class:`ClassAd` object.
+   
+   In the presence of multiple ClassAds or blank lines in the input,
+   continue to merge ClassAds together until the entire input is
+   consumed.
+
+   :param input: Serialized ClassAd input; may be a file-like object.
+   :type input: str or file
+   :param parser: Controls behavior of the ClassAd parser.
+   :type parser: :class:`Parser`
+   :return: Corresponding :class:`ClassAd` object.
+   :rtype: :class:`ClassAd`
+
+.. function:: version()
+
+   Return the version of the linked ClassAd library.
+
+.. function:: lastError()
+
+   Return the string representation of the last error to occur in the ClassAd library.
+   
+   As the ClassAd language has no concept of an exception, this is the only mechanism
+   to receive detailed error messages from functions.
+
+.. function:: Attribute( name )
+
+   Given an attribute name, construct an :class:`ExprTree` object
+   which is a reference to that attribute.
+   
+   .. note:: This may be used to build ClassAd expressions easily from python.
+      For example, the ClassAd expression ``foo == 1`` can be constructed by the
+      python code ``Attribute("foo") == 1``.
+      
+   :param str name: Name of attribute to reference.
+   :return: Corresponding expression consisting of an attribute reference.
+   :rtype: :class:`ExprTree`
+
+.. function:: Function( name, arg1, arg2, ... )
+
+   Given function name name, and zero-or-more arguments, construct an
+   :class:`ExprTree` which is a function call expression. The function is
+   not evaluated.
+   
+   For example, the ClassAd expression ``strcat("hello ", "world")`` can
+   be constructed by the python ``Function("strcat", "hello ", "world")``.
+   
+   :return: Corresponding expression consisting of a function call.
+   :rtype: :class:`ExprTree`
+
+.. function:: Literal( obj )
+
+   Convert a given python object to a ClassAd literal.
+   
+   Python strings, floats, integers, and booleans have equivalent literals in the
+   ClassAd language.
+
+   :param obj: Python object to convert to an expression.
+   :return: Corresponding expression consising of a literal.
+   :rtype: :class:`ExprTree`
+
+.. function:: register( function, name=None )
+
+   Given the python function, register it as a function in the ClassAd language.
+   This allows the invocation of the python function from within a ClassAd
+   evaluation context.
+   
+   :param function: A callable object to register with the ClassAd runtime.
+   :param str name: Provides an alternate name for the function within the ClassAd library.
+      The default, ``None``, indicates to use the built in function name.
+
+.. function:: registerLibrary( path )
+
+   Given a file system path, attempt to load it as a shared library of ClassAd
+   functions. See the upstream documentation for configuration variable
+   ``CLASSAD_USER_LIBS`` for more information about loadable libraries for ClassAd functions.
+
+   :param str path: The library to load.
+
+
+Module Classes
+--------------
+
 .. class:: ClassAd
 
    The :class:`ClassAd` object is the python representation of a ClassAd.
@@ -198,3 +346,53 @@
 
       :return: The evaluated expression as a Python object.
 
+.. _useful_enums:
+
+Useful Enumerations
+-------------------
+
+.. class:: Parser
+
+   Controls the behavior of the ClassAd parser.
+   
+   .. attribute:: Auto
+   
+      The parser should automatically determine the ClassAd representation.
+      
+   .. attribute:: Old
+   
+      The parser should only accept the old ClassAd format.
+      
+   .. attribute:: New
+   
+      The parser should only accept the new ClassAd format.
+
+
+Deprecated Functions
+--------------------
+
+The functions in this section are deprecated; new code should not use them and existing
+code should be rewritten to use their replacements.
+
+.. function:: parse( input )
+
+   *This function is deprecated.*
+
+   Parse input, in the new ClassAd format, into a :class:`ClassAd` object.
+
+   :param input: A string-like object or a file pointer.
+   :type input: str or file
+   :return: Corresponding :class:`ClassAd` object.
+   :rtype: :class:`ClassAd`
+
+
+.. function:: parseOld( input )
+
+   *This function is deprecated.*
+
+   Parse input, in the old ClassAd format, into a :class:`ClassAd` object.
+
+   :param input: A string-like object or a file pointer.
+   :type input: str or file
+   :return: Corresponding :class:`ClassAd` object.
+   :rtype: :class:`ClassAd`
