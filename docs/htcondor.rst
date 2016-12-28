@@ -209,7 +209,77 @@ Module Classes
       :return: The newly created cluster ID.
       :rtype: int
 
-Returns an iterator to a set of ClassAds representing completed jobs.
+   .. method:: submitMany( cluster_ad, proc_ads, spool = false, ad_results = None )
+
+      Submit multiple jobs to the ``condor_schedd`` daemon, possibly including
+      several distinct processes.
+
+      :param cluster_ad: The base ad for the new job cluster; this is the same format
+         as in the :meth:`submit` method.
+      :param list proc_ads: A list of 2-tuples; each tuple has the format of ``(proc_ad, count)``.
+         For each list entry, this will result in count jobs being submitted inheriting from
+         both ``cluster_ad`` and ``proc_ad``.
+      :param bool spool: If ``True``, the clinent inserts the necessary attributes
+         into the job for it to have the input files spooled to a remote 
+         ``condor_schedd`` daemon. This parameter is necessary for jobs submitted
+         to a remote ``condor_schedd`` that use HTCondor file transfer.
+      :param ad_results: If set to a list, the list object will contain the job ads
+         resulting from the job submission.
+         These are needed for interacting with the job spool after submission.
+      :type ad_results: list[:class:`~classad.ClassAd`]
+      :return: The newly created cluster ID.
+      :rtype: int
+
+   .. method:: spool(ad_list)
+
+      Spools the files specified in a list of job ClassAds
+      to the ``condor_schedd``.
+
+      :param ad_list: A list of job descriptions; typically, this is the list
+         filled by the ``ad_results`` argument of the :meth:`submit` method call.
+      :type ad_list: list[:class:`~classad.ClassAds`]
+      :raises RuntimeError: if there are any errors.
+
+   .. method:: retrieve(job_spec)
+
+      Retrieve the output sandbox from one or more jobs.
+
+      :param job_spec: An expression matching the list of job output sandboxes
+         to retrieve.
+      :type job_spec: list[:class:`~classad.ClassAd`]
+      
+   .. method:: refreshGSIProxy(cluster, proc, filename, lifetime)
+   
+      Refresh the GSI proxy of a job; the job's proxy will be replaced the contents
+      of the provided ``filename``.
+
+      .. note:: Depending on the lifetime of the proxy in filename, the resulting lifetime
+         may be shorter than the desired lifetime.
+
+      :param int cluster: Cluster ID of the job to alter.
+      :param int proc: Process ID of the job to alter.
+      :param int lifetime: Indicates the desired lifetime (in seconds) of the delegated proxy.
+         A value of ``0`` specifies to not shorten the proxy lifetime.
+         A value of ``-1`` specifies to use the value of configuration variable
+         ``DELEGATE_JOB_GSI_CREDENTIALS_LIFETIME``.
+
+   .. method:: negotiate( (str)accounting_name )
+
+      Begin a negotiation cycle with the remote schedd for a given user.
+
+      .. note:: The returned :class:`ScheddNegotiate` additionally serves as a context manager,
+         automatically destroying the negotiation session when the context is left.
+
+      :param str accounting_name: Determines which user the client will start negotiating with.
+      :return: An iterator which yields resource request ClassAds from the ``condor_schedd``.
+         Each resource request represents a set of jobs that are next in queue for the schedd
+         for this user.
+      :rtype: :class:`ScheddNegotiate`
+      
+   .. method:: reschedule()
+
+      Send reschedule command to the schedd.
+
 
 .. _collector_class:
 
