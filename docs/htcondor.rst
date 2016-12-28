@@ -163,7 +163,7 @@ Module Classes
          issues; to set the value to the string ``foo``, one would set the value to ``'"foo"'``
       :type value: str or :class:`~classad.ExprTree`
 
-   .. method:: history( (object) requirements, (list) projection, (int) match=1 )
+   .. method:: history( requirements, projection, match=1 )
 
       Fetch history records from the ``condor_schedd`` daemon.
 
@@ -191,7 +191,7 @@ Module Classes
       .. hint:: To generate an example ClassAd, take a sample submit description
          file and invoke::
 
-         condor_submit -dump <filename> [cmdfile]
+            condor_submit -dump <filename> [cmdfile]
 
          Then, load the resulting contents of ``<filename>`` into Python.
 
