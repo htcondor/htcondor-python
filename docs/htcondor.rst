@@ -18,7 +18,7 @@ This reference covers the following:
 * :class:`Collector`: Interacting with the ``condor_collector``.
 * :class:`Submit`: Submitting to HTCondor.
 * :class:`Claim`: Working with HTCondor claims.
-* :class:`Param`: Working with the parameter objects.
+* :class:`_Param`: Working with the parameter objects.
 * :ref:`esoteric_module_functions`: Less-commonly used :mod:`htcondor` functions.
 * :ref:`useful_enums`: Useful enumerations.
 
@@ -56,6 +56,13 @@ Common Module-Level Functions and Objects
 
    :param file_obj: A file-like object corresponding to an HTCondor event log.
    :param bool is_xml: Specifies whether the event log is XML-formatted.
+
+.. data:: param
+   
+   Provides dictionary-like access the HTCondor configuration.
+
+   An instance of :class:`_Param`.  Upon importing the :mod:`htcondor` module, the
+   HTCondor configuration files are parsed and populate this dictionary-like object.
 
 
 .. _schedd_class:
@@ -216,6 +223,7 @@ Module Classes
 
       :param cluster_ad: The base ad for the new job cluster; this is the same format
          as in the :meth:`submit` method.
+      :type cluster_ad: :class:`classad.ClassAd`
       :param list proc_ads: A list of 2-tuples; each tuple has the format of ``(proc_ad, count)``.
          For each list entry, this will result in count jobs being submitted inheriting from
          both ``cluster_ad`` and ``proc_ad``.
@@ -280,8 +288,6 @@ Module Classes
 
       Send reschedule command to the schedd.
 
-
-.. _collector_class:
 
 .. class:: Collector
 
@@ -363,25 +369,132 @@ Module Classes
       :param bool use_tcp: When set to true, updates are sent via TCP.  Defaults to ``True``.
 
 
-.. _submit_class:
-
 .. class:: Submit
 
-   TODO: This section has not yet been written.
+   An object representing a job submit description.  This uses the same submit
+   language as ``condor_submit``.
+   
+   The submit description contains ``key = value`` pairs and implements the python
+   dictionary protocol, including the ``get``, ``setdefault``, ``update``, ``keys``,
+   ``items``, and ``values`` methods.
+
+   .. method:: __init__( input = None )
+
+      Create an instance of the Submit class.
+
+      :param input: ``Key = value`` pairs for initializing the submit description.
+         If omitted, the submit class is initially empty.
+      :type input: dict
+
+   .. method:: expand( attr )
+
+      Expand all macros for the given attribute.
+
+      :param str attr: The name of the relevant attribute.
+      :return: The value of the given attribute; all macros are expanded.
+      :rtype: str
+
+   .. method:: queue( (object)txn, (int)count = 1, (object)ad_results = None )
+
+      Submit the current object to a remote queue.
+      
+      :param txn: An active transaction object (see :meth:`Schedd.transaction`).
+      :type txn: :class:`Transaction`
+      :param int count: The number of jobs to create (defaults to ``1``).
+      :param ad_results: A list to receive the ClassAd resulting from this submit.
+         As with :meth:`Schedd.submit`, this is often used to later spool the input
+         files.
+      :return: The ClusterID of the submitted job(s).
+      :rtype: int
+      :raises RuntimeError: if the submission fails.
 
 
-.. _claim_class:
+.. class:: SecMan
+
+   A class, representing the internal HTCondor security state.
+
+   If a security session becomes invalid, for example, because the remote daemon restarts,
+   reuses the same port, and the client continues to use the session, then all future
+   commands will fail with strange connection errors. This is the only mechanism to
+   invalidate in-memory sessions.
+   
+   The :class:`SecMan` can also behave as a context manager; when created, the object can
+   be used to set temporary security configurations that only last during the lifetime
+   of the security object.
+
+   .. method:: __init__( )
+
+      Create a SecMan object.
+
+   .. method:: invalidateAllSessions( )
+
+      Invalidate all security sessions. Any future connections to a daemon will
+      cause a new security session to be created.
+
+   .. method:: ping ( ad, command='DC_NOP' )
+
+      Perform a test authorization against a remote daemon for a given command.
+
+      :param ad: The ClassAd of the daemon as returned by :meth:`Collector.locate`;
+         alternately, the sinful string can be given directly as the first parameter.
+      :type ad: str or :class:`classad.ClassAd`
+      :param command: The DaemonCore command to try; if not given, ``'DC_NOP'`` will be used.
+      :return: An ad describing the results of the test security negotiation.
+      :rtype: :class:`~classad.ClassAd`
+      
+   .. method:: getCommandString(commandInt)
+
+      Return the string name corresponding to a given integer command.
+
+   .. method:: setConfig(key, value)
+
+      Set a temporary configuration variable; this will be kept for all security
+      sessions in this thread for as long as the :class:`SecMan` object is alive.
+      
+      :param str key: Configuration key to set.
+      :param str value: Temporary value to set.
+
+   .. method:: setGSICredential(filename)
+
+      Set the GSI credential to be used for security negotiation.
+
+      :param str filename: File name of the GSI credential.
+
+   .. method:: setPoolPassword(new_pass)
+
+      Set the pool password
+
+      :param str new_pass: Updated pool password to use for new
+         security negotiations.
+
+   .. method:: setTag(tag)
+
+      Set the authentication context tag for the current thread.
+
+      All security sessions negotiated with the same tag will only
+      be utilized when that tag is active.
+      
+      For example, if thread A has a tag set to ``Joe`` and thread B
+      has a tag set to ``Jane``, then all security sessions negotiated
+      for thread A will not be used for thread B.
+      
+      :param str tag: New tag to set.
+
 
 .. class:: Claim
 
    TODO: This section has not yet been written.
 
-.. _param_class:
 
-.. class:: Param
+.. class:: _Param
 
-   TODO: This section has not yet been written.
+   A dictionary-like object for the local HTCondor configuration; the keys and
+   values of this object are the keys and values of the HTCondor configuration.
 
+   The  ``get``, ``setdefault``, ``update``, ``keys``, ``items``, and ``values``
+   methods of this class have the same semantics as a python dictionary.
+   
+   Writing to a ``_Param`` object will update the in-memory HTCondor configuration.
 
 .. _esoteric_module_functions:
 
@@ -389,6 +502,67 @@ Esoteric Module-Level Functions
 -------------------------------
 
 TODO: This section has not yet been written.
+
+
+Iterator and Helper Classes
+---------------------------
+
+.. class:: HistoryIterator
+
+   An iterator class for managing results of the :meth:`Schedd.history` method.
+
+   .. method:: next()
+
+      :return: the next available history ad.
+      :rtype: :class:`classad.ClassAd`
+      :raises StopIteration: when no additional ads are available.
+
+.. class:: QueryIterator
+
+   An iterator class for managing results of the :meth:`Schedd.query` and
+   :meth:`Schedd.xquery` methods.
+   
+   .. method:: next(mode=BlockingMode.Blocking)
+   
+      :param mode: The blocking mode for this call to :meth:`next`; defaults
+         to :attr:`~BlockingMode.Blocking`.
+      :type mode: :class:`BlockingMode`
+      :return: the next available job ad.
+      :rtype: :class:`classad.ClassAd`
+      :raises StopIteration: when no additional ads are available.
+
+   .. method:: nextAdsNonBlocking()
+   
+      Retrieve as many ads are available to the iterator object.
+      
+      If no ads are available, returns an empty list.  Does not throw
+      an exception if no ads are available or the iterator is finished.
+      
+      :return: Zero-or-more job ads.
+      :rtype: list[:class:`classad.ClassAd`]
+
+   .. method:: tag()
+   
+      Retrieve the tag associated with this iterator; when using the :func:`poll` method,
+      this is useful to distinguish multiple iterators.
+
+      :return: the query's tag.
+
+   .. method:: done()
+
+      :return: ``True`` if the iterator is finished; ``False`` otherwise.
+
+   .. method:: watch()
+
+      Returns an ``inotify``-based file descriptor; if this descriptor is given
+      to a ``select()`` instance, ``select`` will indicate this file descriptor is ready
+      to read whenever there are more jobs ready on the iterator.
+      
+      If ``inotify`` is not available on this platform, this will return ``-1``.
+
+      :return: A file descriptor associated with this query.
+      :rtype: int
+
 
 .. _useful_enums:
 
@@ -503,4 +677,16 @@ Useful Enumerations
    .. attribute:: AutoCluster
    
       Instead of returning job ads, return an ad per auto-cluster.
+
+.. class:: BlockingMode
+
+   Controls the behavior of query iterators once they are out of data.
+
+   .. attribute:: Blocking
+   
+      Sets the iterator to block until more data is available.
+
+   .. attribute:: NonBlocking
+   
+      Sets the iterator to return immediately if additional data is not available.
       
