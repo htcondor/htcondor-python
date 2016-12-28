@@ -81,7 +81,7 @@ Module Classes
       :param location_ad: describes the location of the remote ``condor_schedd``
          daemon, as returned by the :meth:`Collector.locate` method. If the parameter is omitted,
          the local ``condor_schedd`` daemon is used.
-      :type location_ad: :class:`classad.ClassAd`
+      :type location_ad: :class:`~classad.ClassAd`
 
    .. method:: transaction(flags=0, continue_txn=False)
 
@@ -106,7 +106,7 @@ Module Classes
          to utilize the :meth:`xquery`
 
       :param constraint: Query constraint; only jobs matching this constraint will be returned; defaults to ``'true'``.
-      :type constraint: str or :class:`class.ExprTree`
+      :type constraint: str or :class:`~classad.ExprTree`
       :param attr_list: Attributes for the ``condor_schedd`` daemon to project along.
          At least the attributes in this list will be returned.
          The default behavior is to return all attributes.
@@ -119,7 +119,7 @@ Module Classes
       :param opts: Additional flags for the query; these may affect the behavior of the ``condor_schedd``.
       :type opts: :class:`QueryOpts`.
       :return: ClassAds representing the matching jobs.
-      :rtype: list[:class:`classad.ClassAd`]
+      :rtype: list[:class:`~classad.ClassAd`]
 
    .. method:: xquery( requirements='true', projection=[] , limit=-1 , opts=QueryOpts.Default , name=None)
    
@@ -223,7 +223,7 @@ Module Classes
 
       :param cluster_ad: The base ad for the new job cluster; this is the same format
          as in the :meth:`submit` method.
-      :type cluster_ad: :class:`classad.ClassAd`
+      :type cluster_ad: :class:`~classad.ClassAd`
       :param list proc_ads: A list of 2-tuples; each tuple has the format of ``(proc_ad, count)``.
          For each list entry, this will result in count jobs being submitted inheriting from
          both ``cluster_ad`` and ``proc_ad``.
@@ -316,7 +316,7 @@ Module Classes
       :param str name: The name of daemon to locate. If not specified, it searches for the local daemon.
       :return: a minimal ClassAd of the requested daemon, sufficient only to contact the daemon;
          typically, this limits to the ``MyAddress`` attribute.
-      :rtype: :class:`classad.ClassAd`
+      :rtype: :class:`~classad.ClassAd`
 
    .. method:: locateAll( daemon_type )
 
@@ -325,7 +325,7 @@ Module Classes
       :param daemon_type: The type of daemon to locate.
       :type daemon_type: :class:`DaemonTypes`
       :return: Matching ClassAds
-      :rtype: list[:class:`classad.ClassAd`]
+      :rtype: list[:class:`~classad.ClassAd`]
 
    .. method:: query( ad_type, constraint='true', attrs=[], statistics='' )
 
@@ -335,13 +335,13 @@ Module Classes
       :type ad_type: :class:`AdTypes`
       :param constraint: A constraint for the collector query; only ads matching this constraint are returned.
          If not specified, all matching ads of the given type are returned.
-      :type constraint: str or :class:`classad.ExprTree`
+      :type constraint: str or :class:`~classad.ExprTree`
       :param attrs: A list of attributes to use for the projection.  Only these attributes, plus a few server-managed,
-         are returned in each :class:`classad.ClassAd`.
+         are returned in each :class:`~classad.ClassAd`.
       :type attrs: list[str]
       :param list[str] statistics: Statistics attributes to include, if they exist for the specified daemon.
       :return: A list of matching ads.
-      :rtype: list[:class:`classad.ClassAd`]
+      :rtype: list[:class:`~classad.ClassAd`]
 
    .. directQuery( daemon_type, name = '', projection = [], statistics = '' )
 
@@ -351,19 +351,19 @@ Module Classes
       :param daemon_type: Specifies the type of the remote daemon to query.
       :type daemon_type: :class:`DaemonTypes`
       :param str name: Specifies the daemon's name. If not specified, the local daemon is used.
-      :param projection: is a list of attributes requested, to obtain only a subset of the attributes from the daemon's :class:`classad.ClassAd`.
+      :param projection: is a list of attributes requested, to obtain only a subset of the attributes from the daemon's :class:`~classad.ClassAd`.
       :type projection: list[str]
       :param statistics: Statistics attributes to include, if they exist for the specified daemon.
       :type statistics: str
       :return: The ad of the specified daemon.
-      :rtype: :class:`classad.ClassAd`
+      :rtype: :class:`~classad.ClassAd`
 
    .. method:: advertise( ad_list, command="UPDATE_AD_GENERIC", use_tcp=True )
 
       Advertise a list of ClassAds into the condor_collector.
 
-      :param ad_list: :class:`classad.ClassAds` to advertise.
-      :type ad_list: list[:class:`classad.ClassAds`]
+      :param ad_list: :class:`~classad.ClassAds` to advertise.
+      :type ad_list: list[:class:`~classad.ClassAds`]
       :param str command: An advertise command for the remote ``condor_collector``. It defaults to ``UPDATE_AD_GENERIC``.
          Other commands, such as ``UPDATE_STARTD_AD``, may require different authorization levels with the remote daemon.
       :param bool use_tcp: When set to true, updates are sent via TCP.  Defaults to ``True``.
@@ -437,7 +437,7 @@ Module Classes
 
       :param ad: The ClassAd of the daemon as returned by :meth:`Collector.locate`;
          alternately, the sinful string can be given directly as the first parameter.
-      :type ad: str or :class:`classad.ClassAd`
+      :type ad: str or :class:`~classad.ClassAd`
       :param command: The DaemonCore command to try; if not given, ``'DC_NOP'`` will be used.
       :return: An ad describing the results of the test security negotiation.
       :rtype: :class:`~classad.ClassAd`
@@ -514,7 +514,7 @@ Iterator and Helper Classes
    .. method:: next()
 
       :return: the next available history ad.
-      :rtype: :class:`classad.ClassAd`
+      :rtype: :class:`~classad.ClassAd`
       :raises StopIteration: when no additional ads are available.
 
 .. class:: QueryIterator
@@ -528,7 +528,7 @@ Iterator and Helper Classes
          to :attr:`~BlockingMode.Blocking`.
       :type mode: :class:`BlockingMode`
       :return: the next available job ad.
-      :rtype: :class:`classad.ClassAd`
+      :rtype: :class:`~classad.ClassAd`
       :raises StopIteration: when no additional ads are available.
 
    .. method:: nextAdsNonBlocking()
@@ -539,7 +539,7 @@ Iterator and Helper Classes
       an exception if no ads are available or the iterator is finished.
       
       :return: Zero-or-more job ads.
-      :rtype: list[:class:`classad.ClassAd`]
+      :rtype: list[:class:`~classad.ClassAd`]
 
    .. method:: tag()
    

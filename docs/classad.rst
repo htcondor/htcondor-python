@@ -24,8 +24,8 @@
       parsed as an ad) or a dictionary-like object.
       
       .. note:: Where possible, we recommend using the dedicated parsing functions
-      (:func:`parseOne`, :func:`parseNext`, or :func:`parseAds`) instead of using
-      the constructor.
+         (:func:`parseOne`, :func:`parseNext`, or :func:`parseAds`) instead of using
+         the constructor.
       
       :param ad: Initial values for this object.
       :type ad: str or dict
@@ -121,9 +121,9 @@
    method.
    
    .. note:: The python operators for ExprTree have been overloaded so, if ``e1`` and ``e2`` are :class:`ExprTree` objects,
-   then ``e1 + e2`` is also an :class:``ExprTree`` object.  However, Python short-circuit evaluation semantics
-   for ``e1 && e2`` cause ``e1`` to be evaluated.  In order to get the "logical and" of the two expressions *without*
-   evaluating, use ``e1.and_(e2)``.  Similarly, ``e1.or_(e2)`` results in the "logical or".
+      then ``e1 + e2`` is also an :class:``ExprTree`` object.  However, Python short-circuit evaluation semantics
+      for ``e1 && e2`` cause ``e1`` to be evaluated.  In order to get the "logical and" of the two expressions *without*
+      evaluating, use ``e1.and_(e2)``.  Similarly, ``e1.or_(e2)`` results in the "logical or".
 
    .. method:: __init__( expr )
 
