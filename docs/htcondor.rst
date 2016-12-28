@@ -57,6 +57,39 @@ Common Module-Level Functions and Objects
    :param file_obj: A file-like object corresponding to an HTCondor event log.
    :param bool is_xml: Specifies whether the event log is XML-formatted.
 
+.. function:: enable_debug( )
+
+   Enable debugging output from HTCondor; output is sent to ``stderr``.
+   The logging level is controlled by the HTCondor configuration variable ``TOOL_DEBUG``.
+
+.. function:: enable_log( )
+
+   Enable debugging output from HTCondor; output is sent to a file.
+   
+   The log level is controlled by the HTCondor configuration variable ``TOOL_DEBUG``,
+   and the file used is controlled by ``TOOL_LOG``.
+
+.. function:: read_events( file_obj, is_xml = True )
+
+   Read and parse an HTCondor event log file. 
+
+   :param file_obj: A file object corresponding to an HTCondor event log.
+   :param bool is_xml: Specifies whether the event log is XML-formatted.
+   :return: A Python iterator which produces objects of type :class:`ClassAd`.
+   :rtype: :class:`EventIterator`
+
+.. function:: poll( active_queries )
+
+   Wait on the results of multiple query iteratories.
+
+   This function returns an iterator which yields the next ready query iterator.
+   The returned iterator stops when all results have been consumed for all iterators.
+
+   :param active_queries: Query iterators as returned by xquery().
+   :type active_queries: list[:class:`QueryIterator`]
+   :return: An iterator producing the ready :class:`QueryIterator`.
+   :rtype: :class:`BulkQueryIterator`
+
 .. data:: param
    
    Provides dictionary-like access the HTCondor configuration.
@@ -501,7 +534,63 @@ Module Classes
 Esoteric Module-Level Functions
 -------------------------------
 
-TODO: This section has not yet been written.
+.. function:: send_command( ad, dc, target = None)
+
+   Send a command to an HTCondor daemon specified by a location ClassAd.
+
+   :param ad: Specifies the location of the daemon (typically, found by using :meth:`Collector.locate`.
+   :type ad: :class:`~classad.ClassAd`
+   :param dc: A command type
+   :type dc: :class:`DaemonCommands`
+   :param str target: An additional command to send to a daemon. Some commands
+      require additional arguments; for example, sending ``DaemonOff`` to a
+      ``condor_master`` requires one to specify which subsystem to turn off.
+
+.. function:: send_alive( ad, pid = None, timeout = -1 )
+
+   Send a keep alive message to an HTCondor daemon.
+
+   This is used when the python process is run as a child daemon under
+   the ``condor_master``.
+
+   :param ad: A :class:`~classad.ClassAd` specifying the location of the daemon.
+      This ad is typically found by using :meth:`Collector.locate`.
+   :type ad: :class:`~classad.ClassAd`
+   :param int pid: The process identifier for the keep alive. The default value of
+      ``None`` uses the value from :function:`os.getpid`.
+   :param int timeout: The number of seconds that this keep alive is valid. If a
+      new keep alive is not received by the condor_master in time, then the
+      process will be terminated. The default value is controlled by configuration
+      variable ``NOT_RESPONDING_TIMEOUT``.
+
+.. function:: set_subsystem( name, daemon_type = Auto )
+
+   Set the subsystem name for the object.
+   
+   The subsystem is primarily used for the parsing of the HTCondor configuration file.
+
+   :param str name: The subsystem name.
+   :param daemon_type: The HTCondor daemon type. The default value of Auto infers the type from the name parameter.
+   :type daemon_type: :class:`SubsystemType`
+
+.. function:: lock( file_obj, lock_type )
+
+   Take a lock on a file object using the HTCondor locking protocol
+   (distinct from typical POSIX locks).
+   
+   :param file file_obj: is a file object corresponding to the file which should be locked.
+   :param lock_type: The kind of lock to acquire.
+   :type lock_type: :class:`LockType`
+   :return: A context manager object; the lock is released when the context manager object is exited.
+   :rtype: FileLock
+
+.. function:: log( level, msg )
+
+   Log a message using the HTCondor logging subsystem.
+
+   :param level: The Log category and formatting indicator. Multiple LogLevel enum attributes may be OR'd together.
+   :type level: :class:`LogLevel`
+   :param str msg: A message to log.
 
 
 Iterator and Helper Classes
@@ -563,6 +652,25 @@ Iterator and Helper Classes
       :return: A file descriptor associated with this query.
       :rtype: int
 
+.. class:: BulkQueryIterator
+
+   Returned by :func:`poll`, this iterator produces a sequence of :class:`QueryIterator`
+   objects that have ads ready to be read in a non-blocking manner.
+   
+   Once there are no additional available iterators, :func:`poll` must be called again.
+   
+   .. method:: next()
+   
+      :return: The next available :class:`QueryIterator` that can be read without
+         blocking.
+      :rtype: :class:`QueryIterator`
+      :raises StopIteration: if no more iterators are ready.
+
+.. class:: FileLock
+
+   A context manager object created by the :func:`lock` function; upon exit from the
+   context, it will release the lock.
+
 
 .. _useful_enums:
 
@@ -606,6 +714,63 @@ Useful Enumerations
       Any type of daemon; useful when specifying queries where all matching
       daemons should be returned.
 
+.. class:: AdTypes
+
+   A list of different types of ads that may be kept in the ``condor_collector``.
+   
+   .. attribute:: Any
+   
+      Type representing any matching ad.  Useful for queries that match everything
+      in the collector.
+      
+   .. attribute:: Collector
+   
+      Ads from the ``condor_collector`` daemon.
+      
+   .. attribute:: Generic
+   
+      Generic ads, associated with no particular daemon.
+      
+   .. attribute:: Grid
+   
+      Ads associated with the grid universe.
+      
+   .. attribute:: HAD
+   
+      Ads produced by the ``condor_had``.
+      
+   .. attribute:: License
+   
+      License ads.  These do not appear to be used by any modern HTCondor daemon.
+      
+   .. attribute:: Master
+   
+      Master ads, produced by the ``condor_master`` daemon.
+      
+   .. attribute:: Negotiator
+   
+      Negotiator ads, produced by the ``condor_negotiator`` daemon.
+      
+   .. attribute:: Schedd
+   
+      Schedd ads, produced by the ``condor_schedd`` daemon.
+      
+   .. attribute:: Startd
+   
+      Startd ads, produced by the ``condor_startd`` daemon.  Represents the
+      available slots managed by the startd.
+
+   .. attribute:: StartdPrivate
+   
+      The "private" ads, containing the claim IDs associated with a particular
+      slot.  These require additional authorization to read as the claim ID
+      may be used to run jobs on the slot.
+      
+   .. attribute:: Submitter
+   
+      Ads describing the submitters with available jobs to run; produced by
+      the ``condor_schedd`` and read by the ``condor_negotiator`` to determine
+      which users need a new negotiation cycle.
 
 .. class:: JobAction
 
@@ -613,7 +778,8 @@ Useful Enumerations
 
    .. attribute:: Hold
 
-      Put a job on hold, vacating a running job if necessary.  A job will stay in the hold state until explicitly acted upon by the admin or owner.
+      Put a job on hold, vacating a running job if necessary.  A job will stay in the hold state
+      until explicitly acted upon by the admin or owner.
 
    .. attribute:: Release
 
@@ -647,6 +813,39 @@ Useful Enumerations
 
       Vacate a running job as quickly as possible, without providing time for the job to cleanly terminate.
 
+.. class:: DaemonCommands
+
+   Various state-changing commands that can be sent to to a HTCondor daemon using :func:`send_command`.
+
+   .. attribute:: DaemonOff
+   
+   .. attribute:: DaemonOffFast
+   
+   .. attribute:: DaemonOffPeaceful
+   
+   .. attribute:: DaemonsOff
+   
+   .. attribute:: DaemonsOffFast
+   
+   .. attribute:: DaemonsOffPeaceful
+   
+   .. attribute:: OffFast
+   
+   .. attribute:: OffForce
+   
+   .. attribute:: OffGraceful
+   
+   .. attribute:: OffPeaceful
+   
+   .. attribute:: Reconfig
+   
+   .. attribute:: Restart
+   
+   .. attribute:: RestartPeacful
+   
+   .. attribute:: SetForceShutdown
+   
+   .. attribute:: SetPeacefulShutdown
 
 .. class:: TransactionFlags
 
@@ -689,4 +888,21 @@ Useful Enumerations
    .. attribute:: NonBlocking
    
       Sets the iterator to return immediately if additional data is not available.
-      
+
+.. class:: DrainTypes
+
+   Draining policies that can be sent to a ``condor_startd``.
+
+   .. attribute:: Fast
+   
+   .. attribute:: Graceful
+   
+   .. attribute:: Quick
+
+.. class:: LockType
+
+   Lock policies that may be taken.
+   
+   .. attribute:: ReadLock
+   
+   .. attribute:: WriteLock
