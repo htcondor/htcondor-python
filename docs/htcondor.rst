@@ -95,8 +95,8 @@ Module Classes
       Query the ``condor_schedd`` daemon for jobs.
       
       .. note:: This returns a *list* of :class:`~classad.ClassAd` objects, meaning all results must
-      be buffered in memory.  This may be memory-intensive for large responses; we strongly recommend
-      to utilize the :meth:`xquery`
+         be buffered in memory.  This may be memory-intensive for large responses; we strongly recommend
+         to utilize the :meth:`xquery`
 
       :param constraint: Query constraint; only jobs matching this constraint will be returned; defaults to ``'true'``.
       :type constraint: str or :class:`class.ExprTree`
@@ -114,6 +114,27 @@ Module Classes
       :return: ClassAds representing the matching jobs.
       :rtype: list[:class:`classad.ClassAd`]
 
+   .. method:: xquery( requirements='true', projection=[] , limit=-1 , opts=QueryOpts.Default , name=None)
+   
+      Query the condor_schedd daemon for jobs.
+      
+      As opposed to :meth:`query`, this returns an *iterator*, meaning only one ad is buffered in memory at a time.
+
+      :param requirements: provides a constraint for filtering out jobs. It defaults to ``'true'``.
+      :type requirements: str or :class:`~classad.ExprTree`
+      :param projection: The attributes to return; an empty list (the default) signifies all attributes.
+      :type projection: list[str]
+      :param int limit: A limit on the number of matches to return.  The default (``-1``) indicates all
+         matching jobs should be returned.
+      :param opts: Additional flags for the query, from :class:`QueryOpts`.
+      :type opts: :class:`QueryOpts`
+      :param str name: A tag name for the returned query iterator. This string will always be
+         returned from the :meth:`QueryIterator.tag` method of the returned iterator.
+         The default value is the ``condor_schedd``'s name. This tag is useful to identify
+         different queries when using the :function:`poll` function.
+      :return: An iterator for the matching job ads
+      :rtype: :class:`~htcondor.QueryIterator`
+
    .. method:: act( action, job_spec )
 
       Change status of job(s) in the ``condor_schedd`` daemon. The return value is a ClassAd object
@@ -126,6 +147,69 @@ Module Classes
       :param job_spec: The job specification. It can either be a list of job IDs or a string specifying a constraint.
          Only jobs matching this description will be acted upon.
       :type job_spec: list[str] or str
+
+   .. method:: edit( job_spec, attr, value )
+
+      Edit one or more jobs in the queue.
+      
+      This will throw an exception if no jobs are matched by the ``job_spec`` constraint.
+
+      :param job_spec: The job specification. It can either be a list of job IDs or a string specifying a constraint.
+         Only jobs matching this description will be acted upon.
+      :type job_spec: list[str] or str
+      :param str attr: The name of the attribute to edit.
+      :param value: The new value of the attribute.  It should be a string, which will
+         be converted to a ClassAd expression, or an ExprTree object.  Be mindful of quoting
+         issues; to set the value to the string ``foo``, one would set the value to ``'"foo"'``
+      :type value: str or :class:`~classad.ExprTree`
+
+   .. method:: history( (object) requirements, (list) projection, (int) match=1 )
+
+      Fetch history records from the ``condor_schedd`` daemon.
+
+      :param requirements: Query constraint; only jobs matching this constraint will be returned;
+         defaults to ``'true'``.
+      :type constraint: str or :class:`class.ExprTree`
+      :param projection: Attributes that are to be included for each returned job.
+         The empty list causes all attributes to be included.
+      :type projection: list[str]
+      :param int match: An limit on the number of jobs to include; the default (``-1``)
+         indicates to return all matching jobs.
+      :return: All matching ads in the Schedd history, with attributes according to the
+         ``projection`` keyword.
+      :rtype: :class:`HistoryIterator`
+
+   .. method:: submit( ad, count = 1, spool = false, ad_results = None )
+   
+      Submit one or more jobs to the ``condor_schedd`` daemon.
+
+      This method requires the invoker to provide a ClassAd for the new job cluster;
+      such a ClassAd contains attributes with different names than the commands in a
+      submit description file. As an example, the stdout file is referred to as ``output``
+      in the submit description file, but ``Out`` in the ClassAd.
+      
+      .. hint:: To generate an example ClassAd, take a sample submit description
+         file and invoke::
+
+         condor_submit -dump <filename> [cmdfile]
+
+         Then, load the resulting contents of ``<filename>`` into Python.
+
+      :param ad: The ClassAd describing the job cluster.
+      :type ad: :class:`~classad.ClassAd`
+      :param int count: The number of jobs to submit to the job cluster. Defaults to ``1``.
+      :param bool spool: If ``True``, the clinent inserts the necessary attributes
+         into the job for it to have the input files spooled to a remote 
+         ``condor_schedd`` daemon. This parameter is necessary for jobs submitted
+         to a remote ``condor_schedd`` that use HTCondor file transfer.
+      :param ad_results: If set to a list, the list object will contain the job ads
+         resulting from the job submission.
+         These are needed for interacting with the job spool after submission.
+      :type ad_results: list[:class:`~classad.ClassAd`]
+      :return: The newly created cluster ID.
+      :rtype: int
+
+Returns an iterator to a set of ClassAds representing completed jobs.
 
 .. _collector_class:
 
