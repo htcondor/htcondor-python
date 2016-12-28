@@ -16,7 +16,7 @@ This reference covers the following:
 * :ref:`module_functions`: The module-level :mod:`classad` functions.
 * :class:`ClassAd`: Representation of a ClassAd.
 * :class:`ExprTree`: Representation of a ClassAd expression.
-* :ref:`useful_enums`: Useful enumerations.
+* :ref:`useful_classad_enums`: Useful enumerations.
 
 .. _module_functions:
 
@@ -58,7 +58,7 @@ Module-Level Functions
    :type input: str or file
    :param parser: Controls behavior of the ClassAd parser.
    :type parser: :class:`Parser`
-   :return: An iterator that produces :class:`ClassAd`s.
+   :return: An iterator that produces :class:`ClassAd`.
 
 .. function:: parseNext( input, parser=Auto )
 
@@ -69,7 +69,7 @@ Module-Level Functions
    :type input: str or file
    :param parser: Controls behavior of the ClassAd parser.
    :type parser: :class:`Parser`
-   :return: An iterator that produces :class:`ClassAd`s.
+   :return: An iterator that produces :class:`ClassAd`.
 
 .. function:: parseOne( input, parser=Auto )
 
@@ -346,7 +346,7 @@ Module Classes
 
       :return: The evaluated expression as a Python object.
 
-.. _useful_enums:
+.. _useful_classad_enums:
 
 Useful Enumerations
 -------------------
