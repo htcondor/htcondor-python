@@ -138,7 +138,7 @@ Module Classes
       :param str name: A tag name for the returned query iterator. This string will always be
          returned from the :meth:`QueryIterator.tag` method of the returned iterator.
          The default value is the ``condor_schedd``'s name. This tag is useful to identify
-         different queries when using the :function:`poll` function.
+         different queries when using the :func:`poll` function.
       :return: An iterator for the matching job ads
       :rtype: :class:`~htcondor.QueryIterator`
 
