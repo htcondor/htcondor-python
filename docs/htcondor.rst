@@ -90,6 +90,30 @@ Module Classes
          inside a pre-existing transaction will cause an exception to be thrown.
       :return: A transaction context manager object.
 
+   .. method:: query( constraint='true', attr_list=[], callback=None, limit=-1, opts=QueryOpts.Default )
+
+      Query the ``condor_schedd`` daemon for jobs.
+      
+      .. note:: This returns a *list* of :class:`~classad.ClassAd` objects, meaning all results must
+      be buffered in memory.  This may be memory-intensive for large responses; we strongly recommend
+      to utilize the :meth:`xquery`
+
+      :param constraint: Query constraint; only jobs matching this constraint will be returned; defaults to ``'true'``.
+      :type constraint: str or :class:`class.ExprTree`
+      :param attr_list: Attributes for the ``condor_schedd`` daemon to project along.
+         At least the attributes in this list will be returned.
+         The default behavior is to return all attributes.
+      :type attr_list: list[str]
+      :param callback: A callable object; if provided, it will be invoked for each ClassAd.
+         The return value (if note ``None``) will be added to the returned list instead of the
+         ad.
+      :param int limit: The maximum number of ads to return; the default (``-1``) is to return
+         all ads.
+      :param opts: Additional flags for the query; these may affect the behavior of the ``condor_schedd``.
+      :type opts: :class:`QueryOpts`.
+      :return: ClassAds representing the matching jobs.
+      :rtype: list[:class:`classad.ClassAd`]
+
    .. method:: act( action, job_spec )
 
       Change status of job(s) in the ``condor_schedd`` daemon. The return value is a ClassAd object
@@ -314,3 +338,15 @@ Useful Enumerations
 
      Causes any changes to the job queue to be logged in the relevant job event log.
 
+.. class:: QueryOpts
+
+   Flags sent to the ``condor_schedd`` during a query to alter its behavior.
+   
+   .. attribute:: Default
+   
+      Queries should use all default behaviors.
+      
+   .. attribute:: AutoCluster
+   
+      Instead of returning job ads, return an ad per auto-cluster.
+      
