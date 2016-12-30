@@ -16,12 +16,12 @@ Submitting Jobs
 We will submit jobs utilizing the dedicated :class:`~htcondor.Submit` object.
 
 .. note:: The :class:`~htcondor.Submit` object was introduced in 8.5.6, which might be newer than your
-   home cluster.  The original API, using the :method`htcondor.Schedd.submit` method, utilizes raw ClassAds
+   home cluster.  The original API, using the :meth:`htcondor.Schedd.submit` method, utilizes raw ClassAds
    and is not covered here.
 
 :class:`~htcondor.Submit` objects consist of key-value pairs.  Unlike ClassAds, the values do not have an
 inherent type (such as strings, integers, or booleans); they *are* evaluated with macro expansion at submit time.
-Where reasonable, they behave like python dictionaries:::
+Where reasonable, they behave like python dictionaries::
 
    >>> sub = htcondor.Submit({"foo": "1", "bar": "2", "baz": "$(foo)"})
    >>> sub.setdefault("qux", "3")
@@ -36,9 +36,9 @@ Where reasonable, they behave like python dictionaries:::
    >>> print sub.expand("baz")
    1
 
-The available attribuets - and their semantics - are relatively well documented in the ``condor_submit``
+The available attributes - and their semantics - are relatively well documented in the ``condor_submit``
 `online help <http://research.cs.wisc.edu/htcondor/manual/v8.5/condor_submit.html>`_; we won't repeat them
-here.  A minimal, but realistic submit object may look like the following:::
+here.  A minimal, but realistic submit object may look like the following::
 
    >>> sub = htcondor.Submit({"executable": "/bin/sleep", "arguments": "5m"})
 
@@ -48,7 +48,7 @@ To go from a submit object to job in a schedd, one must do three things:
 2.  Call the :meth:`~htcondor.Submit.queue` method, passing the transaction object.
 3.  Commit the transaction.
 
-Since the transaction object is a python context, (1) and (3) can be achieved using Python's ``with`` statement.::
+Since the transaction object is a python context, (1) and (3) can be achieved using Python's ``with`` statement::
 
    >>> schedd = htcondor.Schedd()         # Create a schedd object using default settings.
    >>> with schedd.transaction() as txn:  # txn will now represent the transaction.
@@ -68,7 +68,7 @@ needs to be edited to correct a submission error.  These actions fall under the 
 There are two :class:`~htcondor.Schedd` methods dedicated to job management:
 
 *  :meth:`~htcondor.Schedd.edit`: Change an attribute for a set of jobs to a given expression.  If invoked within
-   a transaction, multiple calls to `edit` are visible atomically.
+   a transaction, multiple calls to :meth:`~htcondor.Schedd.edit` are visible atomically.
 
    *  The set of jobs to change can be given as a ClassAd expression.  If no jobs match the filter, *then an exception is thrown*.
 *  :meth:`~htcondor.Schedd.act`: Change the state of a job to a given state (remove, hold, suspend, etc).
@@ -86,7 +86,7 @@ from the :class:`~htcondor.JobAction` enum.  Commonly-used values include:
 *  ``Vacate``: Cause a running job to be killed on the remote resource and return to idle state.  With
    ``Vacate``, jobs may be given significant time to cleanly shut down.
 
-Here's an example of job management in action:::
+Here's an example of job management in action::
 
    >>> with schedd.transaction() as txn:
    ...    clusterId = sub.queue(txn, 5)  # Queues 5 copies of this job.
