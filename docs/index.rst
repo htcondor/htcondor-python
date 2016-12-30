@@ -19,7 +19,7 @@ Introductory Tutorial
 .. toctree::
    :maxdepth: 2
 
-   classads_intro
+   classad_intro
    htcondor_intro
    job_management_intro
 
