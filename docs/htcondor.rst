@@ -442,6 +442,38 @@ Module Classes
       :raises RuntimeError: if the submission fails.
 
 
+.. class:: Startd
+
+   .. method:: __init__( ad = None )
+
+      Create an instance of the Startd class.
+
+      :param ad: A ClassAd describing the claim and the startd location.
+         If omitted, the local startd is assumed.
+      :type ad: :class:`~classad.ClassAd`
+
+   .. drainJobs( drain_type = Graceful, (bool)resume_on_completion = false, (expr)check_expr = true )
+
+      Begin draining jobs from the startd.
+
+      :param drain_type: How fast to drain the jobs.  Defaults to Graceful if not specified.
+      :type drain_type: :class:`DrainTypes`
+      :param bool resume_on_completion: Whether the startd should start accepting jobs again
+         once draining is complete.  Otherwise, it will remain in the drained state.
+         Defaults to False.
+      :param str check_expr: An expression string that must evaluate to ``true`` for all slots for
+         draining to begin. Defaults to ``"true"`` if not specified.
+      :return: An opaque request ID that can be used to cancel draining.
+      :rtype: str
+
+   .. method:: cancelDrainJobs( request_id = None )
+
+      Cancel a draining request.
+
+      :param str request_id: Specifies a draining request to cancel.  If not specified, all
+         draining requests for this startd are canceled.
+
+
 .. class:: SecMan
 
    A class, representing the internal HTCondor security state.
@@ -516,7 +548,83 @@ Module Classes
 
 .. class:: Claim
 
-   TODO: This section has not yet been written.
+   The :class:`Claim` class provides access to HTCondor's Compute-on-Demand
+   facilities.  The class represents a claim of a remote resource; it allows
+   the user to manually activate a claim (start a job) or release the associated
+   resources.
+
+   The claim comes with a finite lifetime - the *lease*.  The lease may be
+   extended for as long as the remote resource (the Startd) allows.
+
+   .. method:: __init__( ad )
+
+      Create a :class:`Claim` object of a given remote resource.
+      The ad provides a description of the resource, as returned
+      by :meth:`Collector.locate`.
+
+      This only stores the remote resource's location; it is not
+      contacted until :meth:`requestCOD` is invoked.
+
+      :param ad: Location of the Startd to claim.
+      :type ad: :class:`~classad.ClassAd`
+
+   .. method:: requestCOD( constraint, lease_duration )
+
+      Request a claim from the condor_startd represented by this object.
+
+      On success, the :class:`Claim` object will represent a valid claim on the
+      remote startd; other methods, such as :meth:`activate` should now function.
+
+      :param str constraint:  ClassAd expression that pecifies which slot in
+         the startd should be claimed.  Defaults to ``'true'``, which will
+         result in the first slot becoming claimed.
+      :param int lease_duration: Indicates how long the claim should be valid.
+         Defaults to ``-1``, which indicates to lease the resource for as long
+         as the Startd allows.
+
+   .. method:: activate( ad )
+
+      Activate a claim using a given job ad.
+
+      :param ad: Description of the job to launch; this uses similar, *but not identical*
+         attribute names as ``condor_submit``.  See
+         `the HTCondor manual <http://research.cs.wisc.edu/htcondor/manual/v8.5/4_3Computing_On.html#SECTION00533100000000000000>`_
+         for a description of the job language.
+
+   .. method:: release( vacate_type )
+
+      Release the remote ``condor_startd`` from this claim; shut down any running job.
+
+      :param vacate_type: Indicates the type of vacate to perform for the
+         running job.
+      :type vacate_type: :class:`VacateTypes`
+
+   .. method:: suspend( )
+
+      Temporarily suspend the remote execution of the COD application.
+      On Unix systems, this is done using ``SIGSTOP``.
+
+   .. method:: resume( )
+
+      Resume the temporarily suspended execution.
+      On Unix systems, this is done using ``SIGCONT``.
+
+   .. method:: renew()
+
+      Renew the lease on an existing claim.
+      The renewal should last for the value of ``lease_duration`` provided to
+      :meth:`__init__`.
+
+   .. method:: deactivate()
+
+      Deactivate a claim; shuts down the currently running job,
+      but holds onto the claim for future activation.
+
+   .. method:: delegateGSIProxy(fname)
+
+      Send an X509 proxy credential to an activated claim.
+
+      :param str fname: Filename of the X509 proxy to send to the active claim.
 
 
 .. class:: _Param
@@ -557,7 +665,7 @@ Esoteric Module-Level Functions
       This ad is typically found by using :meth:`Collector.locate`.
    :type ad: :class:`~classad.ClassAd`
    :param int pid: The process identifier for the keep alive. The default value of
-      ``None`` uses the value from :function:`os.getpid`.
+      ``None`` uses the value from :func:`os.getpid`.
    :param int timeout: The number of seconds that this keep alive is valid. If a
       new keep alive is not received by the condor_master in time, then the
       process will be terminated. The default value is controlled by configuration
@@ -899,6 +1007,14 @@ Useful Enumerations
    
    .. attribute:: Quick
 
+.. class:: VacateTypes
+
+   Vacate policies that can be sent to a ``condor_startd``.
+
+   .. attribute:: Fast
+
+   .. attribute:: Graceful
+
 .. class:: LockType
 
    Lock policies that may be taken.
@@ -906,3 +1022,82 @@ Useful Enumerations
    .. attribute:: ReadLock
    
    .. attribute:: WriteLock
+
+.. class:: SubsystemType
+
+   An enumeration of known subsystem names.
+
+   .. attribute:: Collector
+
+   .. attribute:: Daemon
+ 
+   .. attribute:: Dagman
+
+   .. attribute:: GAHP
+
+   .. attribute:: Job
+
+   .. attribute:: Master
+
+   .. attribute:: Negotiator
+
+   .. attribute:: Schedd
+
+   .. attribute:: Shadow
+
+   .. attribute:: SharedPort
+
+   .. attribute:: Startd
+
+   .. attribute:: Starter
+
+   .. attribute:: Submit
+
+   .. attribute:: Tool
+
+.. class:: LogLevel
+
+   The log level attribute to use with :func:`log`.  Note that HTCondor
+   mixes both a class (debug, network, all) and the header format (Timestamp,
+   PID, NoHeader) within this enumeration.
+
+   .. attribute:: Always
+
+   .. attribute:: Audit
+
+   .. attribute:: Config
+
+   .. attribute:: DaemonCore
+
+   .. attribute:: Error
+
+   .. attribute:: FullDebug
+
+   .. attribute:: Hostname
+
+   .. attribute:: Job
+
+   .. attribute:: Machine
+
+   .. attribute:: Network
+
+   .. attribute:: NoHeader
+
+   .. attribute:: PID
+
+   .. attribute:: Priv
+
+   .. attribute:: Protocol
+
+   .. attribute:: Security
+
+   .. attribute:: Status
+
+   .. attribute:: SubSecond
+
+   .. attribute:: Terse
+
+   .. attribute:: Timestamp
+
+   .. attribute:: Verbose
+
