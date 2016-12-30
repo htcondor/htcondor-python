@@ -26,6 +26,17 @@ the major components.  Each learning module is meant to be done in sequence.  St
    htcondor_intro
    job_management_intro
 
+Advanced Tutorials
+------------------
+
+The advanced tutorials are in-depth looks at specific pieces of the Python modules; each is meant to be stand-alone and
+only should require knowledge from the introductory tutorial.
+
+.. toctree::
+   :maxdepth: 2
+
+   interacting_with_daemons.rst
+
 Module Reference
 ----------------
 
