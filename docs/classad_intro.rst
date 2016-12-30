@@ -150,4 +150,4 @@ machines and jobs are represented as ClassAds; expressions are used to filter ob
 
 There's much more to learn in ClassAds!  We maintain comprehensive module documentation for :mod:`classad`.
 
-For now, you have enough background to continue to the next tutorial - :doc:`htcondor_intro`.
+For now, you have enough background to continue to the next tutorial.

@@ -94,3 +94,97 @@ Some notes on the above:
 
    *  Consider what would happen if the host's FQDN contained spaces and doublequotes, such as ``foo.example.com" || true``.
 
+
+Schedd
+------
+
+Let's try our hand at querying the ``schedd``!
+
+First, we'll need a :class:`~htcondor.Schedd` object.  You may either create one out of the
+ad returned by :meth:`~htcondor.Collector.locate` above or use the default in the
+configuration file:::
+
+   >>> schedd = htcondor.Schedd()
+   >>> schedd = htcondor.Schedd(schedd_ad)
+   >>> print schedd
+   <htcondor.Schedd object at 0x7f388404b940>
+
+Unfortunately, as there are no jobs in our personal HTCondor pool, querying the ``schedd``
+will be boring.  Let's submit a few jobs (**note** the API used below will be covered by
+the next module; it's OK if you don't understand it now):::
+
+   >>> sub = htcondor.Submit()
+   >>> sub['executable'] = '/bin/sleep'
+   >>> sub['arguments'] = '5m'
+   >>> with schedd.transaction() as txn:
+   ...    sub.queue(txn, 10)
+
+We should now have 10 jobs in queue, each of which should take 5 minutes to complete.
+
+Let's query for the jobs, paying attention to the jobs' ID and status:::
+
+   >>> for job in schedd.xquery(projection=['ClusterId', 'ProcId', 'JobStatus']):
+   ...    print job.__repr__()
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 2; ProcId = 0; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 1; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 2; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 3; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 4; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 5; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 6; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 7; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 8; ClusterId = 2 ]
+   [ TargetType = "Machine"; MyType = "Job"; ServerTime = 1482811230; JobStatus = 1; ProcId = 9; ClusterId = 2 ]
+
+The ``JobStatus`` is an integer; the integers map into the following states:
+
+* ``1``: Idle (``I``)
+* ``2``: Running (``R``)
+* ``3``: Removed (``X``)
+* ``4``: Completed (``C``)
+* ``5``: Held (``H``)
+* ``6``: Transferring Output
+* ``7``: Suspended
+
+Depending on how quickly you executed the notebook, you might see all jobs idle (``JobStatus = 1``) or one job running (``JobStatus = 2``) above.  It is rare to see the other codes.
+
+As with the Collector's :meth:`~htcondor.Collector.query` method, we can also filter out jobs using :meth:`~htcondor.Schedd.xquery`:::
+
+   >>> for job in schedd.xquery(requirements = 'ProcId >= 5', projection=['ProcId']):
+   ...    print job.get('ProcId')
+   5
+   6
+   7
+   8
+   9
+
+Astute readers may notice that the :class:`~htcondor.Schedd` object has both :meth:`~htondor.Schedd.xquery`
+and :meth:`~htcondor.Schedd.query` methods.  The difference between the two mimics the difference
+between :func:`xreadlines` and :func:`readlines` call in the standard Python library:
+
+*  :meth:`~htcondor.Schedd.query` returns a *list* of ClassAds, meaning all objects are held in memory at
+   once.  This utilizes more memory, but the size of the results is immediately available.  It utilizes an
+   older, heavyweight protocol to communicate with the Schedd.
+*  :meth:`~htcondor.Schedd.xquery` returns an *iterator* that produces ClassAds.  This only requires one
+   ClassAd to be in memory at once.  It is much more lightweight, both on the client and server side.
+
+When in doubt, utilize :meth:`~htcondor.Schedd.xquery`.
+
+Now that we have a running job, it may be useful to check the status of the machine in our HTCondor pool::
+
+   >>> print coll.query(htcondor.AdTypes.Startd, projection=['Name', 'Status', 'Activity', 'JobId', 'RemoteOwner'])[0]
+       [
+           Activity = "Busy";
+           Name = "eb4f00c8f1ca";
+           RemoteOwner = "jovyan@eb4f00c8f1ca";
+           MyType = "Machine";
+           JobId = "2.3";
+           TargetType = "Job"
+       ]
+
+The :class:`~htcondor.Collector` and :class:`~htcondor.Schedd` APIs are large; we maintain comprehensive module
+documentation in :mod:`htcondor`.
+
+Congratulations - you can now perform simple queries against the collector for worker and submit hosts, as well as
+simple job queries against the submit host!
+
