@@ -55,7 +55,7 @@ Python: ``Undefined`` and ``Error``.
 ``Undefined`` occurs when a reference occurs to an attribute that is not defined; it is
 analogous to a ``NameError`` exception in Python (but there is no concept of an exception
 in ClassAds).  ``Error`` occurs primarily when an expression combines two different types
-or when a function call occurs with the incorrect arguments.
+or when a function call occurs with the incorrect arguments.::
 
    >>> print classad.ExprTree("foo").eval()
    Undefined
@@ -137,7 +137,7 @@ Remember our example of an ``Undefined`` attribute above?  We now can evaluate r
    >>> print ad1.eval("d")
    5
 
-Note that an expression is still not evaluated until requested, even if it is invalid:
+Note that an expression is still not evaluated until requested, even if it is invalid:::
 
    >>> ad1["g"] = classad.ExprTree("b + 5")
    >>> print ad1["g"], type(ad1["g"])
