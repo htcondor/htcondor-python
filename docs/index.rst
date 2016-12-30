@@ -26,8 +26,8 @@ the major components.  Each learning module is meant to be done in sequence.  St
    htcondor_intro
    job_management_intro
 
-Contents
---------
+Module Reference
+----------------
 
 .. toctree::
    :maxdepth: 2
