@@ -9,6 +9,7 @@ fi
 
 # Attempt to update with the latest tutorials.
 curl -L https://api.github.com/repos/bbockelm/htcondor-python/tarball  | tar zx  --strip-components=1 '*/notebooks' -C /home/jovyan/work
+mv /home/jovyan/work/notebooks /home/jovyan/work/tutorials
 
 condor_master
 
