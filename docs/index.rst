@@ -35,6 +35,7 @@ only should require knowledge from the introductory tutorial.
 .. toctree::
    :maxdepth: 2
 
+   advanced_schedd.rst
    interacting_with_daemons.rst
 
 Module Reference

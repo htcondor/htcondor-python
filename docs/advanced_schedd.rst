@@ -76,3 +76,72 @@ This is sub-optimal for two reasons:
 *  The querying across all schedds is serialized: we may wait for painfully long on one or two
    "bad apples"
 
+We can instead begin the query for all schedds simultaneously, then read the responses as
+they are sent back.  First, we start all the queries without reading responses::
+
+   >>> queries = []
+   >>> coll_query = coll.locate(htcondor.AdTypes.Schedd)
+   >>> end = time.time()
+   >>> for schedd_ad in coll_query:
+   ...     schedd_obj = htcondor.Schedd(schedd_ad)
+   ...     queries.append(schedd_obj.xquery())
+
+The iterators will yield the matching jobs; to return the autoclusters instead of jobs, use
+the ``AutoCluster`` option (``schedd_obj.xquery(opts=htcondor.QueryOpts.AutoCluster)``).  One
+auto-cluster ad is returned for each set of jobs that have identical values for all significant
+attributes.  A sample auto-cluster looks like::
+
+       [
+        RequestDisk = DiskUsage;
+        Rank = 0.0;
+        FileSystemDomain = "hcc-briantest7.unl.edu";
+        MemoryUsage = ( ( ResidentSetSize + 1023 ) / 1024 );
+        ImageSize = 1000;
+        JobUniverse = 5;
+        DiskUsage = 1000;
+        JobCount = 1;
+        Requirements = ( TARGET.Arch == "X86_64" ) && ( TARGET.OpSys == "LINUX" ) && ( TARGET.Disk >= RequestDisk ) && ( TARGET.Memory >= RequestMemory ) && ( ( TARGET.HasFileTransfer ) || ( TARGET.FileSystemDomain == MY.FileSystemDomain ) );
+        RequestMemory = ifthenelse(MemoryUsage isnt undefined,MemoryUsage,( ImageSize + 1023 ) / 1024);
+        ResidentSetSize = 0;
+        ServerTime = 1483758177;
+        AutoClusterId = 2
+       ]
+
+We use the :func:`poll` function, which will return when a query has available results::
+
+   >>> job_counts = {}
+   >>> for query in htcondor.poll(queries):
+   ...    schedd_name = query.tag()
+   ...    job_counts.setdefault(schedd_name, 0)
+   ...    count = len(query.nextAdsNonBlocking())
+   ...    job_counts[schedd_name] += count
+   ...    print "Got %d results from %s." % (count, schedd_name)
+   >>> print job_counts
+
+The :meth:`~htcondor.QueryIterator.tag` tag is used to identify which query is returned; the
+tag defaults to the Schedd's name but can be manually set through the ``tag`` keyword argument
+to :meth:`~htcondor.Schedd.xquery`.
+
+### History Queries
+
+After a job has finished in the Schedd, it moves from the queue to the history file.  The
+history can be queried (locally or remotely) with the :meth:`~htcondor.Schedd.history` method::
+
+   >>> schedd = htcondor.Schedd()
+   >>> for ad in schedd.history('true', ['ProcId', 'ClusterId', 'JobStatus', 'WallDuration'], 2):
+   ...     print ad
+
+At the time of writing, unlike :meth:`~htcondor.Schedd.xquery`, :meth:`~htcondor.Schedd.history`
+takes positional arguments and not keyword.  The first argument a job constraint; second is the
+projection list; the third is the maximum number of jobs to return.
+
+Advanced Job Submission
+-----------------------
+
+TODO - this section has yet to be written.
+
+Negotiation with the Schedd
+---------------------------
+
+TODO - this section has yet to be written.
+
