@@ -119,7 +119,7 @@ We use the :func:`poll` function, which will return when a query has available r
    ...    print "Got %d results from %s." % (count, schedd_name)
    >>> print job_counts
 
-The :meth:`~htcondor.QueryIterator.tag` tag is used to identify which query is returned; the
+The :meth:`~htcondor.QueryIterator.tag` method is used to identify which query is returned; the
 tag defaults to the Schedd's name but can be manually set through the ``tag`` keyword argument
 to :meth:`~htcondor.Schedd.xquery`.
 
@@ -140,10 +140,123 @@ projection list; the third is the maximum number of jobs to return.
 Advanced Job Submission
 -----------------------
 
-TODO - this section has yet to be written.
+In :doc:`htcondor_intro`, we introduced the :class:`~htcondor.Submit` object.  :class:`~htcondor.Submit`
+allows jobs to be created using the *submit file* language.  This is the well-documented, familiar
+means for submitting jobs via ``condor_submit``.  This is the preferred mechansim for submitting
+jobs from Python.
+
+Internally, the submit files are converted to a job ClassAd.  The older :meth:`~htcondor.Schedd.submit`
+method allows jobs to be submitted as ClassAds.  For example::
+
+   >>> import os.path
+   >>> schedd = htcondor.Schedd()
+   >>> job_ad = { \
+   ...      'Cmd': '/bin/sh',
+   ...      'JobUniverse': 5,
+   ...      'Iwd': os.path.abspath(testdir),
+   ...      'Out': 'testclaim.out',
+   ...      'Err': 'testclaim.err',
+   ...      'Arguments': 'sleep 5m',
+   ...  }
+   >>> clusterId = schedd.submit(job_ad, count=2)
+
+This will submit two copies of the job described by ``job_ad`` into a single job cluster.
+
+.. hint:: To generate an example ClassAd, take a sample submit description
+   file and invoke::
+
+      condor_submit -dump <filename> [cmdfile]
+
+   Then, load the resulting contents of ``<filename>`` into Python.
+
+Calling :meth:`~htcondor.Schedd.submit` standalone will automatically create and commit a transaction.
+Multiple jobs can be submitted atomically and more efficiently within a :meth:`~htcondor.Schedd.transaction()`
+context.
+
+Each :meth:`~htcondor.Schedd.submit` invocation will create a new job cluster; all attributes will be
+identical except for the ``ProcId`` attribute (process IDs are assigned in monotonically increasing order,
+starting at zero).  If jobs in the same cluster need to differ on additional attributes, one may use the
+:meth:`~htcondor.Schedd.submitMany` method::
+
+   >>> foo = {'myAttr': 'foo'}
+   >>> bar = {'myAttr': 'bar'}
+   >>> clusterId = schedd.submit(job_ad, [(foo, 2), (bar, 2)])
+   >>> print list(schedd.xquery('ClusterId==%d' % clusterId, ['ProcId', 'myAttr']))
+
+:meth:`~htcondor.Schedd.submitMany` takes a basic job ad (sometimes referred to as the *cluster ad*),
+shared by all jobs in the cluster and a list of *process ads*.  The process ad list indicates
+the attributes that should be overridden for individual jobs, as well as the number of such jobs
+that should be submitted.
+
+Job Spooling
+^^^^^^^^^^^^
+
+HTCondor file transfer will move output and input files to and from the submit host; these files will
+move back to the original location on the host.  In some cases, this may be problematic; you may want
+to submit one set of jobs to run ``/home/jovyan/a.out``, recompile the binary, then submit a fresh
+set of jobs.  By using the *spooling* feature, the ``condor_schedd`` will make a private copy of
+``a.out`` after submit, allowing the user to make new edits.
+
+.. note:: Although here we give an example of using :meth:`~htcondor.Schedd.spool` for spooling on
+   the local Schedd, with appropriate authoriation the same methods can be used for submitting to
+   remote hosts.
+
+To spool, one must specify this at submit time and invoke the :meth:`~htcondor.Schedd.spool` method
+and provide an ``ad_results`` array::
+
+   >>> ads = []
+   >>> cluster = schedd.submit(job_ad, 1, spool=True, ad_results=ads)
+   >>> schedd.spool(ads)
+
+This will copy the files into the Schedd's ``spool`` directory.  After the job completes, its
+output files will stay in the spool.  One needs to call :meth:`~htcondor.Schedd.retrieve` to
+move the outputs back to their final destination::
+
+   >>> htcondor.retrieve("ClusterId == %d" % cluster)
 
 Negotiation with the Schedd
 ---------------------------
 
-TODO - this section has yet to be written.
+The ``condor_negotiator`` daemon gathers job and machine ClassAds, tries to match machines
+to available jobs, and sends these matches to the ``condor_schedd``.
+
+In truth, the "match" is internally a *claim* on the resource; the Schedd is allowed to
+execute one or more job on it.
+
+The python bindings can also send claims to the Schedds.  First, we must prepare the
+claim objects by taking the slot's public ClassAd and adding a ``ClaimId`` attribute::
+
+   >>> coll = htcondor.Collector()
+   >>> private_ads = coll.query(htcondor.AdTypes.StartdPrivate)
+   >>> startd_ads = coll.query(htcondor.AdTypes.Startd)
+   >>> claim_ads = []
+   >>> for ad in startd_ads:
+   ...     if "Name" not in ad: continue
+   ...     found_private = False
+   ...     for pvt_ad in private_ads:
+   ...         if pvt_ad.get('Name') == ad['Name']:
+   ...             found_private = True
+   ...             ad['ClaimId'] = pvt_ad['Capability']
+   ...            claim_ads.append(ad)
+
+Once the claims are prepared, we can send them to the schedd.  Here's an example of
+sending the claim to user ``jovyan@example.com``, for any matching ad::
+
+   >>> with htcondor.Schedd().negotiate("bbockelm@unl.edu") as session:
+   >>>     found_claim = False
+   >>>     for resource_request in session:
+   >>>         for claim_ad in claim_ads:
+   >>>             if resource_request.symmetricMatch(claim_ad):
+   ...                 print "Sending claim for", claim_ad["Name"]
+   ...                 session.sendClaim(claim_ads[0])
+   ...                 found_claim = True
+   ...                 break
+   ...         if found_claim: break
+
+This is far cry from what the ``condor_negotiator`` actually does (the negotiator
+additionally enforces fairshare, for example).
+
+.. note:: The python bindings can send claims to the schedd immediately, even without
+   reading the resource request from the schedd.  The schedd will only utilize the
+   claim if there's a matching job, however.
 
