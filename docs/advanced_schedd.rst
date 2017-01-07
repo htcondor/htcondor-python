@@ -44,7 +44,7 @@ To illustrate these additional keywords, let's first submit a few jobs::
    ...     clusterId = sub.queue(10)
 
 .. note:: In this example, we used the ``hold`` submit command to indicate that
-   the jobs `should start out in the ``condor_schedd`` in the *Hold* state; this
+   the jobs should start out in the ``condor_schedd`` in the *Hold* state; this
    is used simply to prevent the jobs from running to completion while you are
    running the tutorial.
 
@@ -57,7 +57,8 @@ We now have 10 jobs running under ``clusterId``; they should all be identical::
 The ``sum(1 for _ in ...)`` syntax is a simple way to count the number of items
 produced by an iterator without buffering all the objects in memory.
 
-### Querying many Schedds
+Querying many Schedds
+^^^^^^^^^^^^^^^^^^^^^
 
 On larger pools, it's common to write python scripts that interact with not one but many schedds.  For example,
 if you want to implement a "global query" (equivalent to ``condor_q -g``; concatenates all jobs in all schedds),
@@ -122,7 +123,8 @@ The :meth:`~htcondor.QueryIterator.tag` tag is used to identify which query is r
 tag defaults to the Schedd's name but can be manually set through the ``tag`` keyword argument
 to :meth:`~htcondor.Schedd.xquery`.
 
-### History Queries
+History Queries
+^^^^^^^^^^^^^^^
 
 After a job has finished in the Schedd, it moves from the queue to the history file.  The
 history can be queried (locally or remotely) with the :meth:`~htcondor.Schedd.history` method::
