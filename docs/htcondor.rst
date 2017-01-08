@@ -442,6 +442,87 @@ Module Classes
       :raises RuntimeError: if the submission fails.
 
 
+.. class:: Negotiator
+
+   This class provides a query interface to the ``condor_negotiator``; primarily,
+   it allows one to query and set various parameters in the fair-share accounting.
+
+   .. method:: __init__( ad = None )
+
+     Create an instance of the Negotiator class.
+
+     :param ad: A ClassAd describing the claim and the ``condor_negotiator``
+         location.  If omitted, the default pool negotiator is assumed.
+      :type ad: :class:`~classad.ClassAd`
+
+   .. method:: deleteUser( user )
+
+      Delete all records of a user from the Negotiator's fair-share accounting.
+
+      :param str user: A fully-qualified user name, i.e., ``USER@DOMAIN``.
+
+   .. method:: getPriorities( [(bool)rollup = False ] )
+
+      Retrieve the pool accounting information, one per entry.Returns a list of accounting ClassAds.
+
+      :param bool rollup: Set to ``True`` if accounting information, as applied to hierarchical group quotas, should be summed for groups and subgroups.
+      :return: A list of accounting ads, one per entity.
+      :rtype: list[:class:`~classad.ClassAd`]
+
+   .. method:: getResourceUsage( (str)user )
+
+      Get the resources (slots) used by a specified user.
+
+      :param str user: A fully-qualified user name, ``USER@DOMAIN``.
+      :return: List of ads describing the resources (slots) in use.
+      :rtype: list[:class:`~classad.ClassAd`]
+
+   .. method:: resetAllUsage( )
+
+      Reset all usage accounting.  All known user records in the negotiator are deleted.
+
+   .. method:: resetUsage( user )
+
+      Reset all usage accounting of the specified user.
+
+      :param str user: A fully-qualified user name, ``USER@DOMAIN``.
+
+   .. method:: setBeginUsage( user, value )
+
+      Manually set the time that a user begins using the pool.
+
+      :param str user: A fully-qualified user name, ``USER@DOMAIN``.
+      :param int value: The Unix timestamp of initial usage.
+
+   .. method:: setLastUsage( user, value )
+
+      Manually set the time that a user last used the pool.
+
+      :param str user: A fully-qualified user name, ``USER@DOMAIN``.
+      :param int value: The Unix timestamp of last usage.
+
+   .. method:: setFactor( user, factor )
+
+      Set the priority factor of a specified user.
+
+      :param str user: A fully-qualified user name, ``USER@DOMAIN``.
+      :param float factor: The priority factor to be set for the user; must be greater-than or equal-to 1.0.
+
+   .. method:: setPriority( user, prio )
+
+      Set the real priority of a specified user.
+
+      :param str user: A fully-qualified user name, ``USER@DOMAIN``.
+      :param float prio: The priority to be set for the user; must be greater-than 0.0.
+
+   .. method:: setUsage( user, usage )
+
+      Set the accumulated usage of a specified user.
+
+      :param str user: A fully-qualified user name, ``USER@DOMAIN``.
+      :param float usage: The usage, in hours, to be set for the user.
+
+
 .. class:: Startd
 
    .. method:: __init__( ad = None )
@@ -625,6 +706,31 @@ Module Classes
       Send an X509 proxy credential to an activated claim.
 
       :param str fname: Filename of the X509 proxy to send to the active claim.
+
+
+.. class:: ScheddNegotiate
+
+   The :class:`ScheddNegotiate` class represents an ongoing negotiation session
+   with a schedd.  It is a context manager, returned by the :meth:`~htcondor.Schedd.negotiate`
+   method.
+
+   .. method:: sendClaim( claim, offer, request )
+
+      Send a claim to the schedd; if possible, the schedd will activate this and run
+      one or more jobs.
+
+      :param str claim: The claim ID, typically from the ``Capability`` attribute in the
+         corresponding Startd's private ad.
+      :param offer: A description of the resource claimed (typically, the machine's ClassAd).
+      :type offer: :class:`~classad.ClassAd`
+      :param request: The resource request this claim is responding to; if not provided
+         (default), the Schedd will decide which job receives this resource.
+      :type request: :class:`~classad.ClassAd`
+
+   .. method:: disconnect()
+
+      Disconnect from this negotiation session.  This can also be achieved by exiting
+      the context.
 
 
 .. class:: _Param

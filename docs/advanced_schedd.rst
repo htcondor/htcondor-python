@@ -197,7 +197,7 @@ to submit one set of jobs to run ``/home/jovyan/a.out``, recompile the binary, t
 set of jobs.  By using the *spooling* feature, the ``condor_schedd`` will make a private copy of
 ``a.out`` after submit, allowing the user to make new edits.
 
-.. note:: Although here we give an example of using :meth:`~htcondor.Schedd.spool` for spooling on
+.. hint:: Although here we give an example of using :meth:`~htcondor.Schedd.spool` for spooling on
    the local Schedd, with appropriate authoriation the same methods can be used for submitting to
    remote hosts.
 
