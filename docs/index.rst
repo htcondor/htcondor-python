@@ -36,6 +36,7 @@ only should require knowledge from the introductory tutorial.
    :maxdepth: 2
 
    advanced_schedd.rst
+   scalable_job_tracking.rst
    interacting_with_daemons.rst
 
 Module Reference
