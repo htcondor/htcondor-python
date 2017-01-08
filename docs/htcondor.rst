@@ -452,8 +452,8 @@ Module Classes
      Create an instance of the Negotiator class.
 
      :param ad: A ClassAd describing the claim and the ``condor_negotiator``
-         location.  If omitted, the default pool negotiator is assumed.
-      :type ad: :class:`~classad.ClassAd`
+        location.  If omitted, the default pool negotiator is assumed.
+     :type ad: :class:`~classad.ClassAd`
 
    .. method:: deleteUser( user )
 
