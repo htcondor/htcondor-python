@@ -41,7 +41,7 @@ To illustrate these additional keywords, let's first submit a few jobs::
    ...                        "hold":       "True",
    ...                       })
    >>> with schedd.transaction() as txn:
-   ...     clusterId = sub.queue(10)
+   ...     clusterId = sub.queue(txn, 10)
 
 .. note:: In this example, we used the ``hold`` submit command to indicate that
    the jobs should start out in the ``condor_schedd`` in the *Hold* state; this
@@ -81,8 +81,7 @@ We can instead begin the query for all schedds simultaneously, then read the res
 they are sent back.  First, we start all the queries without reading responses::
 
    >>> queries = []
-   >>> coll_query = coll.locate(htcondor.AdTypes.Schedd)
-   >>> end = time.time()
+   >>> coll_query = htcondor.Collector().locate(htcondor.AdTypes.Schedd)
    >>> for schedd_ad in coll_query:
    ...     schedd_obj = htcondor.Schedd(schedd_ad)
    ...     queries.append(schedd_obj.xquery())
