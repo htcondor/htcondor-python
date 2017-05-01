@@ -152,7 +152,7 @@ method allows jobs to be submitted as ClassAds.  For example::
    >>> job_ad = { \
    ...      'Cmd': '/bin/sh',
    ...      'JobUniverse': 5,
-   ...      'Iwd': os.path.abspath(testdir),
+   ...      'Iwd': os.path.abspath("/tmp"),
    ...      'Out': 'testclaim.out',
    ...      'Err': 'testclaim.err',
    ...      'Arguments': 'sleep 5m',
@@ -179,7 +179,7 @@ starting at zero).  If jobs in the same cluster need to differ on additional att
 
    >>> foo = {'myAttr': 'foo'}
    >>> bar = {'myAttr': 'bar'}
-   >>> clusterId = schedd.submit(job_ad, [(foo, 2), (bar, 2)])
+   >>> clusterId = schedd.submitMany(job_ad, [(foo, 2), (bar, 2)])
    >>> print list(schedd.xquery('ClusterId==%d' % clusterId, ['ProcId', 'myAttr']))
 
 :meth:`~htcondor.Schedd.submitMany` takes a basic job ad (sometimes referred to as the *cluster ad*),
@@ -211,7 +211,7 @@ This will copy the files into the Schedd's ``spool`` directory.  After the job c
 output files will stay in the spool.  One needs to call :meth:`~htcondor.Schedd.retrieve` to
 move the outputs back to their final destination::
 
-   >>> htcondor.retrieve("ClusterId == %d" % cluster)
+   >>> schedd.retrieve("ClusterId == %d" % cluster)
 
 Negotiation with the Schedd
 ---------------------------
