@@ -7,7 +7,7 @@
    :synopsis: Interact with the HTCondor daemons
 .. moduleauthor:: Brian Bockelman <bbockelm@cse.unl.edu>
 
-This page is an exhaustive reference of the API exposed by the :mod:`htondor`
+This page is an exhaustive reference of the API exposed by the :mod:`htcondor`
 module.  It is not meant to be a tutorial for new users but rather a helpful
 guide for those who already understand the basic usage of the module.
 
