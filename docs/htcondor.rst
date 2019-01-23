@@ -19,6 +19,8 @@ This reference covers the following:
 * :class:`Submit`: Submitting to HTCondor.
 * :class:`Claim`: Working with HTCondor claims.
 * :class:`_Param`: Working with the parameter objects.
+* :class:`JobEventLog`: Working with user event logs.
+* :class:`JobEvent`: An event in a user event log.
 * :ref:`esoteric_module_functions`: Less-commonly used :mod:`htcondor` functions.
 * :ref:`useful_enums`: Useful enumerations.
 
@@ -740,8 +742,55 @@ Module Classes
 
    The  ``get``, ``setdefault``, ``update``, ``keys``, ``items``, and ``values``
    methods of this class have the same semantics as a python dictionary.
-   
+
    Writing to a ``_Param`` object will update the in-memory HTCondor configuration.
+
+.. class:: JobEventLog
+
+   An iterable object corresponding to a specific file on disk containing a
+   user event log.
+
+   .. method:: __init__( filename )
+
+   Create an instance of the :class:`JobEventLog` class.
+
+   :param filename: Filename of the job event log.
+
+   .. method:: events( stop_after=None )
+
+   Return an iterator (self), which yields :class:`JobEvent` objects.  The iterator
+   may return any number of events, including zero, before stopping.
+
+   :param stop_after: Stop waiting for new events after this many seconds.
+      If ``None``, never stop waiting for new events.  If ``0``, do not wait
+      for new events.
+
+.. class:: JobEvent
+
+   An immutable dictionary-like object corresponding to a particular event
+   in the user log.  All events define the following attributes.  Other
+   type-specific attributes are keys of the dictionary.  :class:`JobEvent`
+   objects support both ``in`` operators (``if "attribute" in jobEvent`` and
+   ``for attributeName in jobEvent``) and may be passed as arguments to
+   ``len``.
+
+   .. attribute:: type
+
+      :type: :class:`htcondor.JobEventType`
+
+      The event type.
+
+   .. attribute:: cluster
+
+      The cluster ID.
+
+   .. attribute:: proc
+
+      The proc ID.
+
+   .. attribute:: timestamp
+
+      When the event was recorded.
 
 .. _esoteric_module_functions:
 
@@ -1207,3 +1256,90 @@ Useful Enumerations
 
    .. attribute:: Verbose
 
+.. class:: JobEventType
+
+   The type event of a user log event; corresponds to ``ULogEventNumber``
+   in the C++ source.
+
+   .. attribute:: SUBMIT
+
+   .. attribute:: EXECUTE
+
+   .. attribute:: EXECUTABLE_ERROR
+
+   .. attribute:: CHECKPOINTED
+
+   .. attribute:: JOB_EVICTED
+
+   .. attribute:: JOB_TERMINATED
+
+   .. attribute:: IMAGE_SIZE
+
+   .. attribute:: SHADOW_EXCEPTION
+
+   .. attribute:: GENERIC
+
+   .. attribute:: JOB_ABORTED
+
+   .. attribute:: JOB_SUSPENDED
+
+   .. attribute:: JOB_UNSUSPENDED
+
+   .. attribute:: JOB_HELD
+
+   .. attribute:: JOB_RELEASED
+
+   .. attribute:: NODE_EXECUTE
+
+   .. attribute:: NODE_TERMINATED
+
+   .. attribute:: POST_SCRIPT_TERMINATED
+
+   .. attribute:: GLOBUS_SUBMIT
+
+   .. attribute:: GLOBUS_SUBMIT_FAILED
+
+   .. attribute:: GLOBUS_RESOURCE_UP
+
+   .. attribute:: GLOBUS_RESOURCE_DOWN
+
+   .. attribute:: REMOTE_ERROR
+
+   .. attribute:: JOB_DISCONNECTED
+
+   .. attribute:: JOB_RECONNECTED
+
+   .. attribute:: JOB_RECONNECT_FAILED
+
+   .. attribute:: GRID_RESOURCE_UP
+
+   .. attribute:: GRID_RESOURCE_DOWN
+
+   .. attribute:: GRID_SUBMIT
+
+   .. attribute:: JOB_AD_INFORMATION
+
+   .. attribute:: JOB_STATUS_UNKNOWN
+
+   .. attribute:: JOB_STATUS_KNOWN
+
+   .. attribute:: JOB_STAGE_IN
+
+
+   .. attribute:: JOB_STAGE_OUT
+
+   .. attribute:: ATTRIBUTE_UPDATE
+
+   .. attribute:: PRESKIP
+
+   .. attribute:: CLUSTER_SUBMIT
+
+   .. attribute:: CLUSTER_REMOVE
+
+   .. attribute:: FACTORY_PAUSED
+
+   .. attribute:: FACTORY_RESUMED
+
+   .. attribute:: NONE
+
+   .. attribute:: FILE_TRANSFER
