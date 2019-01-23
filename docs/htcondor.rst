@@ -767,6 +767,12 @@ Module Classes
    ``for attributeName in jobEvent``) and may be passed as arguments to
    ``len``.
 
+   .. note:: Although the attribute `type` is a :class:`JobEventType` type,
+      when acting as dictionary, a :class:`JobEvent` object returns types
+      as if it were a :class:`~classad.ClassAd`, so comparisons to enumerated
+      values must use the `==` operator.  (No current event type has
+      :class:`~classad.ExprTree` values.)
+
    .. attribute:: type
 
       :type: :class:`htcondor.JobEventType`
