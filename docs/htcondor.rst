@@ -19,6 +19,8 @@ This reference covers the following:
 * :class:`Submit`: Submitting to HTCondor.
 * :class:`Claim`: Working with HTCondor claims.
 * :class:`_Param`: Working with the parameter objects.
+* :class:`JobEventLog`: Working with user event logs.
+* :class:`JobEvent`: An event in a user event log.
 * :ref:`esoteric_module_functions`: Less-commonly used :mod:`htcondor` functions.
 * :ref:`useful_enums`: Useful enumerations.
 
@@ -50,13 +52,6 @@ Common Module-Level Functions and Objects
    The log level is controlled by the parameter ``TOOL_DEBUG``, and the
    file used is controlled by ``TOOL_LOG``.
 
-.. function:: read_events(file_obj, is_xml = True)
-
-   Read and parse an HTCondor event log file. Returns a Python iterator of ClassAds.
-
-   :param file_obj: A file-like object corresponding to an HTCondor event log.
-   :param bool is_xml: Specifies whether the event log is XML-formatted.
-
 .. function:: enable_debug( )
 
    Enable debugging output from HTCondor; output is sent to ``stderr``.
@@ -65,13 +60,13 @@ Common Module-Level Functions and Objects
 .. function:: enable_log( )
 
    Enable debugging output from HTCondor; output is sent to a file.
-   
+
    The log level is controlled by the HTCondor configuration variable ``TOOL_DEBUG``,
    and the file used is controlled by ``TOOL_LOG``.
 
 .. function:: read_events( file_obj, is_xml = True )
 
-   Read and parse an HTCondor event log file. 
+   Read and parse an HTCondor event log file.
 
    :param file_obj: A file object corresponding to an HTCondor event log.
    :param bool is_xml: Specifies whether the event log is XML-formatted.
@@ -91,7 +86,7 @@ Common Module-Level Functions and Objects
    :rtype: :class:`BulkQueryIterator`
 
 .. data:: param
-   
+
    Provides dictionary-like access the HTCondor configuration.
 
    An instance of :class:`_Param`.  Upon importing the :mod:`htcondor` module, the
@@ -133,7 +128,7 @@ Module Classes
    .. method:: query( constraint='true', attr_list=[], callback=None, limit=-1, opts=QueryOpts.Default )
 
       Query the ``condor_schedd`` daemon for jobs.
-      
+
       .. note:: This returns a *list* of :class:`~classad.ClassAd` objects, meaning all results must
          be buffered in memory.  This may be memory-intensive for large responses; we strongly recommend
          to utilize the :meth:`xquery`
@@ -155,9 +150,9 @@ Module Classes
       :rtype: list[:class:`~classad.ClassAd`]
 
    .. method:: xquery( requirements='true', projection=[] , limit=-1 , opts=QueryOpts.Default , name=None)
-   
+
       Query the condor_schedd daemon for jobs.
-      
+
       As opposed to :meth:`query`, this returns an *iterator*, meaning only one ad is buffered in memory at a time.
 
       :param requirements: provides a constraint for filtering out jobs. It defaults to ``'true'``.
@@ -191,7 +186,7 @@ Module Classes
    .. method:: edit( job_spec, attr, value )
 
       Edit one or more jobs in the queue.
-      
+
       This will throw an exception if no jobs are matched by the ``job_spec`` constraint.
 
       :param job_spec: The job specification. It can either be a list of job IDs or a string specifying a constraint.
@@ -220,14 +215,14 @@ Module Classes
       :rtype: :class:`HistoryIterator`
 
    .. method:: submit( ad, count = 1, spool = false, ad_results = None )
-   
+
       Submit one or more jobs to the ``condor_schedd`` daemon.
 
       This method requires the invoker to provide a ClassAd for the new job cluster;
       such a ClassAd contains attributes with different names than the commands in a
       submit description file. As an example, the stdout file is referred to as ``output``
       in the submit description file, but ``Out`` in the ClassAd.
-      
+
       .. hint:: To generate an example ClassAd, take a sample submit description
          file and invoke::
 
@@ -239,7 +234,7 @@ Module Classes
       :type ad: :class:`~classad.ClassAd`
       :param int count: The number of jobs to submit to the job cluster. Defaults to ``1``.
       :param bool spool: If ``True``, the clinent inserts the necessary attributes
-         into the job for it to have the input files spooled to a remote 
+         into the job for it to have the input files spooled to a remote
          ``condor_schedd`` daemon. This parameter is necessary for jobs submitted
          to a remote ``condor_schedd`` that use HTCondor file transfer.
       :param ad_results: If set to a list, the list object will contain the job ads
@@ -261,7 +256,7 @@ Module Classes
          For each list entry, this will result in count jobs being submitted inheriting from
          both ``cluster_ad`` and ``proc_ad``.
       :param bool spool: If ``True``, the clinent inserts the necessary attributes
-         into the job for it to have the input files spooled to a remote 
+         into the job for it to have the input files spooled to a remote
          ``condor_schedd`` daemon. This parameter is necessary for jobs submitted
          to a remote ``condor_schedd`` that use HTCondor file transfer.
       :param ad_results: If set to a list, the list object will contain the job ads
@@ -288,9 +283,9 @@ Module Classes
       :param job_spec: An expression matching the list of job output sandboxes
          to retrieve.
       :type job_spec: list[:class:`~classad.ClassAd`]
-      
+
    .. method:: refreshGSIProxy(cluster, proc, filename, lifetime)
-   
+
       Refresh the GSI proxy of a job; the job's proxy will be replaced the contents
       of the provided ``filename``.
 
@@ -316,7 +311,7 @@ Module Classes
          Each resource request represents a set of jobs that are next in queue for the schedd
          for this user.
       :rtype: :class:`ScheddNegotiate`
-      
+
    .. method:: reschedule()
 
       Send reschedule command to the schedd.
@@ -406,7 +401,7 @@ Module Classes
 
    An object representing a job submit description.  This uses the same submit
    language as ``condor_submit``.
-   
+
    The submit description contains ``key = value`` pairs and implements the python
    dictionary protocol, including the ``get``, ``setdefault``, ``update``, ``keys``,
    ``items``, and ``values`` methods.
@@ -430,7 +425,7 @@ Module Classes
    .. method:: queue( (object)txn, (int)count = 1, (object)ad_results = None )
 
       Submit the current object to a remote queue.
-      
+
       :param txn: An active transaction object (see :meth:`Schedd.transaction`).
       :type txn: :class:`Transaction`
       :param int count: The number of jobs to create (defaults to ``1``).
@@ -563,7 +558,7 @@ Module Classes
    reuses the same port, and the client continues to use the session, then all future
    commands will fail with strange connection errors. This is the only mechanism to
    invalidate in-memory sessions.
-   
+
    The :class:`SecMan` can also behave as a context manager; when created, the object can
    be used to set temporary security configurations that only last during the lifetime
    of the security object.
@@ -587,7 +582,7 @@ Module Classes
       :param command: The DaemonCore command to try; if not given, ``'DC_NOP'`` will be used.
       :return: An ad describing the results of the test security negotiation.
       :rtype: :class:`~classad.ClassAd`
-      
+
    .. method:: getCommandString(commandInt)
 
       Return the string name corresponding to a given integer command.
@@ -596,7 +591,7 @@ Module Classes
 
       Set a temporary configuration variable; this will be kept for all security
       sessions in this thread for as long as the :class:`SecMan` object is alive.
-      
+
       :param str key: Configuration key to set.
       :param str value: Temporary value to set.
 
@@ -619,11 +614,11 @@ Module Classes
 
       All security sessions negotiated with the same tag will only
       be utilized when that tag is active.
-      
+
       For example, if thread A has a tag set to ``Joe`` and thread B
       has a tag set to ``Jane``, then all security sessions negotiated
       for thread A will not be used for thread B.
-      
+
       :param str tag: New tag to set.
 
 
@@ -740,8 +735,61 @@ Module Classes
 
    The  ``get``, ``setdefault``, ``update``, ``keys``, ``items``, and ``values``
    methods of this class have the same semantics as a python dictionary.
-   
+
    Writing to a ``_Param`` object will update the in-memory HTCondor configuration.
+
+.. class:: JobEventLog
+
+   An iterable object corresponding to a specific file on disk containing a
+   user event log.
+
+   .. method:: __init__( filename )
+
+   Create an instance of the :class:`JobEventLog` class.
+
+   :param filename: Filename of the job event log.
+
+   .. method:: events( stop_after=None )
+
+   Return an iterator (self), which yields :class:`JobEvent` objects.  The iterator
+   may return any number of events, including zero, before stopping.
+
+   :param stop_after: Stop waiting for new events after this many seconds.
+      If ``None``, never stop waiting for new events.  If ``0``, do not wait
+      for new events.
+
+.. class:: JobEvent
+
+   An immutable dictionary-like object corresponding to a particular event
+   in the user log.  All events define the following attributes.  Other
+   type-specific attributes are keys of the dictionary.  :class:`JobEvent`
+   objects support both ``in`` operators (``if "attribute" in jobEvent`` and
+   ``for attributeName in jobEvent``) and may be passed as arguments to
+   ``len``.
+
+   .. note:: Although the attribute `type` is a :class:`JobEventType` type,
+      when acting as dictionary, a :class:`JobEvent` object returns types
+      as if it were a :class:`~classad.ClassAd`, so comparisons to enumerated
+      values must use the `==` operator.  (No current event type has
+      :class:`~classad.ExprTree` values.)
+
+   .. attribute:: type
+
+      :type: :class:`htcondor.JobEventType`
+
+      The event type.
+
+   .. attribute:: cluster
+
+      The cluster ID.
+
+   .. attribute:: proc
+
+      The proc ID.
+
+   .. attribute:: timestamp
+
+      When the event was recorded.
 
 .. _esoteric_module_functions:
 
@@ -780,7 +828,7 @@ Esoteric Module-Level Functions
 .. function:: set_subsystem( name, daemon_type = Auto )
 
    Set the subsystem name for the object.
-   
+
    The subsystem is primarily used for the parsing of the HTCondor configuration file.
 
    :param str name: The subsystem name.
@@ -791,7 +839,7 @@ Esoteric Module-Level Functions
 
    Take a lock on a file object using the HTCondor locking protocol
    (distinct from typical POSIX locks).
-   
+
    :param file file_obj: is a file object corresponding to the file which should be locked.
    :param lock_type: The kind of lock to acquire.
    :type lock_type: :class:`LockType`
@@ -824,9 +872,9 @@ Iterator and Helper Classes
 
    An iterator class for managing results of the :meth:`Schedd.query` and
    :meth:`Schedd.xquery` methods.
-   
+
    .. method:: next(mode=BlockingMode.Blocking)
-   
+
       :param mode: The blocking mode for this call to :meth:`next`; defaults
          to :attr:`~BlockingMode.Blocking`.
       :type mode: :class:`BlockingMode`
@@ -835,17 +883,17 @@ Iterator and Helper Classes
       :raises StopIteration: when no additional ads are available.
 
    .. method:: nextAdsNonBlocking()
-   
+
       Retrieve as many ads are available to the iterator object.
-      
+
       If no ads are available, returns an empty list.  Does not throw
       an exception if no ads are available or the iterator is finished.
-      
+
       :return: Zero-or-more job ads.
       :rtype: list[:class:`~classad.ClassAd`]
 
    .. method:: tag()
-   
+
       Retrieve the tag associated with this iterator; when using the :func:`poll` method,
       this is useful to distinguish multiple iterators.
 
@@ -860,7 +908,7 @@ Iterator and Helper Classes
       Returns an ``inotify``-based file descriptor; if this descriptor is given
       to a ``select()`` instance, ``select`` will indicate this file descriptor is ready
       to read whenever there are more jobs ready on the iterator.
-      
+
       If ``inotify`` is not available on this platform, this will return ``-1``.
 
       :return: A file descriptor associated with this query.
@@ -870,11 +918,11 @@ Iterator and Helper Classes
 
    Returned by :func:`poll`, this iterator produces a sequence of :class:`QueryIterator`
    objects that have ads ready to be read in a non-blocking manner.
-   
+
    Once there are no additional available iterators, :func:`poll` must be called again.
-   
+
    .. method:: next()
-   
+
       :return: The next available :class:`QueryIterator` that can be read without
          blocking.
       :rtype: :class:`QueryIterator`
@@ -931,57 +979,57 @@ Useful Enumerations
 .. class:: AdTypes
 
    A list of different types of ads that may be kept in the ``condor_collector``.
-   
+
    .. attribute:: Any
-   
+
       Type representing any matching ad.  Useful for queries that match everything
       in the collector.
-      
+
    .. attribute:: Collector
-   
+
       Ads from the ``condor_collector`` daemon.
-      
+
    .. attribute:: Generic
-   
+
       Generic ads, associated with no particular daemon.
-      
+
    .. attribute:: Grid
-   
+
       Ads associated with the grid universe.
-      
+
    .. attribute:: HAD
-   
+
       Ads produced by the ``condor_had``.
-      
+
    .. attribute:: License
-   
+
       License ads.  These do not appear to be used by any modern HTCondor daemon.
-      
+
    .. attribute:: Master
-   
+
       Master ads, produced by the ``condor_master`` daemon.
-      
+
    .. attribute:: Negotiator
-   
+
       Negotiator ads, produced by the ``condor_negotiator`` daemon.
-      
+
    .. attribute:: Schedd
-   
+
       Schedd ads, produced by the ``condor_schedd`` daemon.
-      
+
    .. attribute:: Startd
-   
+
       Startd ads, produced by the ``condor_startd`` daemon.  Represents the
       available slots managed by the startd.
 
    .. attribute:: StartdPrivate
-   
+
       The "private" ads, containing the claim IDs associated with a particular
       slot.  These require additional authorization to read as the claim ID
       may be used to run jobs on the slot.
-      
+
    .. attribute:: Submitter
-   
+
       Ads describing the submitters with available jobs to run; produced by
       the ``condor_schedd`` and read by the ``condor_negotiator`` to determine
       which users need a new negotiation cycle.
@@ -1032,33 +1080,33 @@ Useful Enumerations
    Various state-changing commands that can be sent to to a HTCondor daemon using :func:`send_command`.
 
    .. attribute:: DaemonOff
-   
+
    .. attribute:: DaemonOffFast
-   
+
    .. attribute:: DaemonOffPeaceful
-   
+
    .. attribute:: DaemonsOff
-   
+
    .. attribute:: DaemonsOffFast
-   
+
    .. attribute:: DaemonsOffPeaceful
-   
+
    .. attribute:: OffFast
-   
+
    .. attribute:: OffForce
-   
+
    .. attribute:: OffGraceful
-   
+
    .. attribute:: OffPeaceful
-   
+
    .. attribute:: Reconfig
-   
+
    .. attribute:: Restart
-   
+
    .. attribute:: RestartPeacful
-   
+
    .. attribute:: SetForceShutdown
-   
+
    .. attribute:: SetPeacefulShutdown
 
 .. class:: TransactionFlags
@@ -1082,13 +1130,13 @@ Useful Enumerations
 .. class:: QueryOpts
 
    Flags sent to the ``condor_schedd`` during a query to alter its behavior.
-   
+
    .. attribute:: Default
-   
+
       Queries should use all default behaviors.
-      
+
    .. attribute:: AutoCluster
-   
+
       Instead of returning job ads, return an ad per auto-cluster.
 
 .. class:: BlockingMode
@@ -1096,11 +1144,11 @@ Useful Enumerations
    Controls the behavior of query iterators once they are out of data.
 
    .. attribute:: Blocking
-   
+
       Sets the iterator to block until more data is available.
 
    .. attribute:: NonBlocking
-   
+
       Sets the iterator to return immediately if additional data is not available.
 
 .. class:: DrainTypes
@@ -1108,9 +1156,9 @@ Useful Enumerations
    Draining policies that can be sent to a ``condor_startd``.
 
    .. attribute:: Fast
-   
+
    .. attribute:: Graceful
-   
+
    .. attribute:: Quick
 
 .. class:: VacateTypes
@@ -1124,9 +1172,9 @@ Useful Enumerations
 .. class:: LockType
 
    Lock policies that may be taken.
-   
+
    .. attribute:: ReadLock
-   
+
    .. attribute:: WriteLock
 
 .. class:: SubsystemType
@@ -1136,7 +1184,7 @@ Useful Enumerations
    .. attribute:: Collector
 
    .. attribute:: Daemon
- 
+
    .. attribute:: Dagman
 
    .. attribute:: GAHP
@@ -1207,3 +1255,90 @@ Useful Enumerations
 
    .. attribute:: Verbose
 
+.. class:: JobEventType
+
+   The type event of a user log event; corresponds to ``ULogEventNumber``
+   in the C++ source.
+
+   .. attribute:: SUBMIT
+
+   .. attribute:: EXECUTE
+
+   .. attribute:: EXECUTABLE_ERROR
+
+   .. attribute:: CHECKPOINTED
+
+   .. attribute:: JOB_EVICTED
+
+   .. attribute:: JOB_TERMINATED
+
+   .. attribute:: IMAGE_SIZE
+
+   .. attribute:: SHADOW_EXCEPTION
+
+   .. attribute:: GENERIC
+
+   .. attribute:: JOB_ABORTED
+
+   .. attribute:: JOB_SUSPENDED
+
+   .. attribute:: JOB_UNSUSPENDED
+
+   .. attribute:: JOB_HELD
+
+   .. attribute:: JOB_RELEASED
+
+   .. attribute:: NODE_EXECUTE
+
+   .. attribute:: NODE_TERMINATED
+
+   .. attribute:: POST_SCRIPT_TERMINATED
+
+   .. attribute:: GLOBUS_SUBMIT
+
+   .. attribute:: GLOBUS_SUBMIT_FAILED
+
+   .. attribute:: GLOBUS_RESOURCE_UP
+
+   .. attribute:: GLOBUS_RESOURCE_DOWN
+
+   .. attribute:: REMOTE_ERROR
+
+   .. attribute:: JOB_DISCONNECTED
+
+   .. attribute:: JOB_RECONNECTED
+
+   .. attribute:: JOB_RECONNECT_FAILED
+
+   .. attribute:: GRID_RESOURCE_UP
+
+   .. attribute:: GRID_RESOURCE_DOWN
+
+   .. attribute:: GRID_SUBMIT
+
+   .. attribute:: JOB_AD_INFORMATION
+
+   .. attribute:: JOB_STATUS_UNKNOWN
+
+   .. attribute:: JOB_STATUS_KNOWN
+
+   .. attribute:: JOB_STAGE_IN
+
+
+   .. attribute:: JOB_STAGE_OUT
+
+   .. attribute:: ATTRIBUTE_UPDATE
+
+   .. attribute:: PRESKIP
+
+   .. attribute:: CLUSTER_SUBMIT
+
+   .. attribute:: CLUSTER_REMOVE
+
+   .. attribute:: FACTORY_PAUSED
+
+   .. attribute:: FACTORY_RESUMED
+
+   .. attribute:: NONE
+
+   .. attribute:: FILE_TRANSFER

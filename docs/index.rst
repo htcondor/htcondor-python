@@ -10,7 +10,7 @@ documentation focuses on references and tutorials on how to use the modules,
 rather than an install how-to.
 
 .. note:: This work should be considered experimental (its aim is to be better-formatted
-   and more intuitive); the `upstream documentation <http://research.cs.wisc.edu/htcondor/manual/v8.5/6_7Python_Bindings.html>`_
+   and more intuitive); the `upstream documentation <http://research.cs.wisc.edu/htcondor/manual/current/PythonBindings.html>`_
    should be considered authoritative.
 
 Introductory Tutorial
