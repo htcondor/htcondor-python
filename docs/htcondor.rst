@@ -740,8 +740,8 @@ Module Classes
 
 .. class:: JobEventLog
 
-   An iterable object corresponding to a specific file on disk containing a
-   user event log.
+   An iterable object (and iterable context manager) corresponding to a
+   specific file on disk containing a user event log.
 
    .. method:: __init__( filename )
 
@@ -757,6 +757,12 @@ Module Classes
    :param stop_after: Stop waiting for new events after this many seconds.
       If ``None``, never stop waiting for new events.  If ``0``, do not wait
       for new events.
+
+   .. method:: close()
+
+   Closes any open underlying file.  Subsequent iterations on this
+   :class:`JobEventLog` object will immediately terminate (will never return
+   another :class:`JobEvent`).
 
 .. class:: JobEvent
 
