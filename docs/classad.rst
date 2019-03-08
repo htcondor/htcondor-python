@@ -196,6 +196,13 @@ Module Classes
       :param str attr: Attribute to evaluate.
       :return: The :class:`ExprTree` object referenced by ``attr``.
 
+   .. method:: printJson( )
+   
+      Serialize the ClassAd to a string in JSON format.
+
+      :return: The JSON representation of the ad.
+      :rtype: str
+
    .. method:: printOld( )
    
       Serialize the ClassAd in the old ClassAd format.
