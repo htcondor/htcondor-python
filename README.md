@@ -1,13 +1,8 @@
-
 HTCondor Python Documentation
 =============================
 
-This repository represents an _experimental_ effort to modernize the documentation
-for the HTCondor python bindings.  There are two broad tracks this effort is taking:
+The HTCondor Python Bindings documentation can now be found at:
 
-- Self-guided live tutorials using JupyterHub.  JupyterHub allows a Docker container
-  to be spawned per logged-in users.  We additionally launch a small HTCondor instance
-  to be used from within the Jupyter notebook.
-- Reformatting of the python documentation to reStructuredText, use sphinx, and be hosted
-  by ReadTheDocs.
+https://htcondor.readthedocs.io/en/latest/apis/python-bindings/index.html
 
+This GitHub repository will eventually be completely removed. Update your bookmarks!
